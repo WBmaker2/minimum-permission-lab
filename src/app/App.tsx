@@ -1,12 +1,15 @@
 import type { ReactElement } from 'react'
 import { APP_CASES } from '../content/cases'
 import AppHeader from '../components/AppHeader'
-import type { AppCase, CaseId, LabState, LabStage } from '../domain/model'
+import type { AppCase, CaseId, LabState, LabStage, PermissionDecision, RevocationDecision, ConditionalScenarioId, FeatureSwitchId, ReasonTagId } from '../domain/model'
 import { LabProvider, useLab } from './LabProvider'
 import StartScreen from '../features/start/StartScreen'
 import FeatureSpecScreen from '../features/specification/FeatureSpecScreen'
 import PermissionReviewScreen from '../features/review/PermissionReviewScreen'
 import ImpactScreen from '../features/impact/ImpactScreen'
+import RevokeTrainingScreen from '../features/revoke/RevokeTrainingScreen'
+import { areAllCasesComplete } from './labSelectors'
+import PrimaryActionButton from '../components/PrimaryActionButton'
 
 export default function App(): ReactElement {
   return <LabProvider><LabApplication /></LabProvider>
@@ -31,6 +34,10 @@ export function LabApplication(): ReactElement {
     onRationaleTextChange: (caseId, value) => dispatch({ type: 'SET_CASE_RATIONALE_TEXT', caseId, value }),
     onReasonTagToggle: (caseId, tagId) => dispatch({ type: 'TOGGLE_CASE_REASON_TAG', caseId, tagId }),
     onCompleteCase: () => state.activeCaseId && dispatch({ type: 'COMPLETE_CASE', caseId: state.activeCaseId }),
+    onOpenRevocation: () => dispatch({ type: 'OPEN_REVOCATION' }),
+    onRevocationDecision: (decision) => dispatch({ type: 'SET_REVOCATION_DECISION', decision }),
+    onCompleteRevocation: () => dispatch({ type: 'COMPLETE_REVOCATION' }),
+    onOpenReport: () => dispatch({ type: 'OPEN_REPORT' }),
     onReset: () => dispatch({ type: 'RESET_LAB' }),
   }
 
@@ -44,22 +51,28 @@ interface StageCallbacks {
   onSaveOnDeviceChange: (enabled: boolean) => void
   onLoadSavedProgress: () => void
   onBeginReview: () => void
-  onInitialDecision: (decision: import('../domain/model').PermissionDecision) => void
+  onInitialDecision: (decision: PermissionDecision) => void
   onOpenImpact: () => void
-  onFeatureSwitchChange: (caseId: CaseId, switchId: import('../domain/model').FeatureSwitchId, enabled: boolean) => void
-  onAcknowledgeCondition: (caseId: CaseId, conditionId: import('../domain/model').ConditionalScenarioId) => void
+  onFeatureSwitchChange: (caseId: CaseId, switchId: FeatureSwitchId, enabled: boolean) => void
+  onAcknowledgeCondition: (caseId: CaseId, conditionId: ConditionalScenarioId) => void
   onControlActionChange: (caseId: CaseId, action: 'alternative' | 'revoke') => void
   onRevisedDecision: (decision: import('../domain/model').PermissionDecision) => void
   onRationaleTextChange: (caseId: CaseId, value: string) => void
-  onReasonTagToggle: (caseId: CaseId, tagId: import('../domain/model').ReasonTagId) => void
+  onReasonTagToggle: (caseId: CaseId, tagId: ReasonTagId) => void
   onCompleteCase: () => void
+  onOpenRevocation: () => void
+  onRevocationDecision: (decision: RevocationDecision) => void
+  onCompleteRevocation: () => void
+  onOpenReport: () => void
   onReset: () => void
 }
 
 function renderStage(stage: LabStage, activeCase: AppCase | null, callbacks: StageCallbacks): ReactElement {
   switch (stage) {
     case 'start':
-      return <StartScreen {...callbacks} />
+      return areAllCasesComplete(callbacks.state)
+        ? <RevocationReadyScreen onOpenRevocation={callbacks.onOpenRevocation} />
+        : <StartScreen {...callbacks} />
     case 'specification':
       return activeCase
         ? <FeatureSpecScreen appCase={activeCase} onBeginReview={callbacks.onBeginReview} />
@@ -84,12 +97,32 @@ function renderStage(stage: LabStage, activeCase: AppCase | null, callbacks: Sta
         ? <PermissionReviewScreen appCase={activeCase} mode="revision" progress={callbacks.state.caseProgress[activeCase.id]} onDecision={callbacks.onRevisedDecision} onRationaleTextChange={callbacks.onRationaleTextChange} onReasonTagToggle={callbacks.onReasonTagToggle} onReview={callbacks.onCompleteCase} />
         : <CaseRecoveryScreen onRecover={callbacks.onReset} />
     case 'revocation':
-      return <StageScreen heading="권한 철회 미니 활동" />
+      return <RevokeTrainingScreen
+        eligible={areAllCasesComplete(callbacks.state)}
+        decisions={callbacks.state.revocationDecisions}
+        revocationCompleted={callbacks.state.revocationCompleted}
+        onDecision={callbacks.onRevocationDecision}
+        onComplete={callbacks.onCompleteRevocation}
+        onOpenReport={callbacks.onOpenReport}
+        onReset={callbacks.onReset}
+      />
     case 'report':
       return <StageScreen heading="학습 보고서" />
     default:
       return assertNever(stage)
   }
+}
+
+function RevocationReadyScreen({ onOpenRevocation }: { onOpenRevocation: () => void }): ReactElement {
+  return (
+    <main>
+      <h2>네 사례를 모두 완료했습니다</h2>
+      <p>이제 가상 사용 기록을 살펴보고, 필요하지 않은 권한을 철회하는 연습을 시작할 수 있습니다.</p>
+      <PrimaryActionButton pulse stepNumber={6} onClick={onOpenRevocation}>
+        권한 철회 연습 시작
+      </PrimaryActionButton>
+    </main>
+  )
 }
 
 function getActiveCase(activeCaseId: LabState['activeCaseId']): AppCase | null {

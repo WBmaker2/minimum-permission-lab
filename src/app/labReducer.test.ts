@@ -200,6 +200,46 @@ describe('labReducer', () => {
     expect(labReducer(state, { type: 'OPEN_REPORT' }).stage).toBe('report')
   })
 
+  it('requires the start stage and all four completed cases before opening revocation', () => {
+    const incomplete = createStateWithCompletedCases(['photo-scan', 'voice-reading', 'class-map'])
+    expect(labReducer(incomplete, { type: 'OPEN_REVOCATION' })).toBe(incomplete)
+    const wrongStage = { ...createStateWithCompletedCases(), stage: 'report' as const }
+    expect(labReducer(wrongStage, { type: 'OPEN_REVOCATION' })).toBe(wrongStage)
+  })
+
+  it('accepts only valid revocation decisions during the revocation stage', () => {
+    const start = labReducer(createStateWithCompletedCases(), { type: 'OPEN_REVOCATION' })
+    const incomplete = labReducer(start, { type: 'SET_REVOCATION_DECISION', decision: { permissionId: 'camera', action: 'revoke-now' } })
+    expect(incomplete.revocationDecisions.camera?.action).toBe('revoke-now')
+    expect(labReducer(incomplete, { type: 'SET_REVOCATION_DECISION', decision: { permissionId: 'camera', action: 'revoke-now' } })).toBe(incomplete)
+    const wrongStage = { ...incomplete, stage: 'start' as const }
+    expect(labReducer(wrongStage, { type: 'SET_REVOCATION_DECISION', decision: { permissionId: 'microphone', action: 'keep-current-feature' } })).toBe(wrongStage)
+    expect(labReducer(incomplete, { type: 'SET_REVOCATION_DECISION', decision: { permissionId: 'camera', action: 'not-a-runtime-action' as never } })).toBe(incomplete)
+  })
+
+  it('does not complete revocation with incomplete decisions or zero revoke actions', () => {
+    let state = labReducer(createStateWithCompletedCases(), { type: 'OPEN_REVOCATION' })
+    for (const permissionId of allPermissions.slice(0, 3)) {
+      state = labReducer(state, { type: 'SET_REVOCATION_DECISION', decision: { permissionId, action: 'keep-current-feature' } })
+    }
+    expect(labReducer(state, { type: 'COMPLETE_REVOCATION' })).toBe(state)
+    state = labReducer(state, { type: 'SET_REVOCATION_DECISION', decision: { permissionId: 'contacts', action: 'keep-current-feature' } })
+    expect(labReducer(state, { type: 'COMPLETE_REVOCATION' })).toBe(state)
+  })
+
+  it('guards report transition by stage, completion, and still-valid decisions', () => {
+    const start = createStateWithCompletedCases()
+    expect(labReducer(start, { type: 'OPEN_REPORT' })).toBe(start)
+    let state = labReducer(start, { type: 'OPEN_REVOCATION' })
+    for (const permissionId of allPermissions) {
+      state = labReducer(state, { type: 'SET_REVOCATION_DECISION', decision: { permissionId, action: permissionId === 'microphone' ? 'keep-current-feature' : 'revoke-now' } })
+    }
+    state = labReducer(state, { type: 'COMPLETE_REVOCATION' })
+    const invalidCurrent = { ...state, revocationDecisions: { ...state.revocationDecisions, camera: undefined } }
+    expect(labReducer(invalidCurrent, { type: 'OPEN_REPORT' })).toBe(invalidCurrent)
+    expect(labReducer({ ...state, stage: 'start' }, { type: 'OPEN_REPORT' })).toEqual({ ...state, stage: 'start' })
+  })
+
   it('uses immutable duplicate-safe updates and has no persistence side effect', () => {
     const initial = createInitialLabState()
     const selected = labReducer(initial, { type: 'SELECT_CASE', caseId: 'photo-scan' })

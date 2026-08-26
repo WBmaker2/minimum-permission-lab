@@ -61,8 +61,19 @@ function isKnownPermission(permissionId: PermissionId): boolean {
   return PERMISSION_IDS.includes(permissionId)
 }
 
+function isRevocationAction(action: unknown): action is RevocationDecision['action'] {
+  return action === 'keep-current-feature' || action === 'revoke-now'
+}
+
 function hasAllDecisions<T extends { permissionId: PermissionId }>(decisions: Partial<Record<PermissionId, T>>): boolean {
   return PERMISSION_IDS.every((permissionId) => decisions[permissionId]?.permissionId === permissionId)
+}
+
+function hasValidRevocationDecisions(decisions: Partial<Record<PermissionId, RevocationDecision>>): boolean {
+  return PERMISSION_IDS.every((permissionId) => {
+    const decision = decisions[permissionId]
+    return decision?.permissionId === permissionId && isRevocationAction(decision.action)
+  })
 }
 
 function caseConditionIds(caseId: CaseId): ConditionalScenarioId[] {
@@ -230,18 +241,18 @@ export function labReducer(state: LabState, action: LabAction): LabState {
       return withCaseProgress({ ...state, stage: 'start', activeCaseId: null }, action.caseId, { ...progress, completed: true })
     }
     case 'OPEN_REVOCATION':
-      if (state.stage !== 'start' || CASE_ORDER.some((caseId) => !state.caseProgress[caseId]?.completed)) return state
+      if (state.stage !== 'start' || state.revocationCompleted || CASE_ORDER.some((caseId) => !state.caseProgress[caseId]?.completed)) return state
       return { ...state, stage: 'revocation', activeCaseId: null }
     case 'SET_REVOCATION_DECISION':
-      if (state.stage !== 'revocation' || !isKnownPermission(action.decision.permissionId)) return state
+      if (state.stage !== 'revocation' || state.revocationCompleted || !isKnownPermission(action.decision.permissionId) || !isRevocationAction(action.decision.action)) return state
       if (state.revocationDecisions[action.decision.permissionId]?.action === action.decision.action) return state
-      return { ...state, revocationDecisions: { ...state.revocationDecisions, [action.decision.permissionId]: action.decision } }
+      return { ...state, revocationDecisions: { ...state.revocationDecisions, [action.decision.permissionId]: { ...action.decision } } }
     case 'COMPLETE_REVOCATION':
-      if (state.stage !== 'revocation' || !hasAllDecisions(state.revocationDecisions) || !Object.values(state.revocationDecisions).some((decision) => decision?.action === 'revoke-now')) return state
+      if (state.stage !== 'revocation' || !CASE_ORDER.every((caseId) => state.caseProgress[caseId]?.completed) || !hasValidRevocationDecisions(state.revocationDecisions) || !Object.values(state.revocationDecisions).some((decision) => decision?.action === 'revoke-now')) return state
       if (state.revocationCompleted) return state
       return { ...state, revocationCompleted: true }
     case 'OPEN_REPORT':
-      if (!CASE_ORDER.every((caseId) => state.caseProgress[caseId]?.completed) || !state.revocationCompleted || state.stage === 'report') return state
+      if (state.stage !== 'revocation' || !CASE_ORDER.every((caseId) => state.caseProgress[caseId]?.completed) || !state.revocationCompleted || !hasValidRevocationDecisions(state.revocationDecisions) || !Object.values(state.revocationDecisions).some((decision) => decision?.action === 'revoke-now')) return state
       return { ...state, stage: 'report', activeCaseId: null }
     case 'SET_SAVE_ON_DEVICE':
       return state.saveOnDevice === action.enabled ? state : { ...state, saveOnDevice: action.enabled }
