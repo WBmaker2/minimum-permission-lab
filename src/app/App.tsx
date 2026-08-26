@@ -5,6 +5,7 @@ import type { AppCase, CaseId, LabState, LabStage } from '../domain/model'
 import { LabProvider, useLab } from './LabProvider'
 import StartScreen from '../features/start/StartScreen'
 import FeatureSpecScreen from '../features/specification/FeatureSpecScreen'
+import PermissionReviewScreen from '../features/review/PermissionReviewScreen'
 
 export default function App(): ReactElement {
   return <LabProvider><LabApplication /></LabProvider>
@@ -20,6 +21,12 @@ export function LabApplication(): ReactElement {
     onSaveOnDeviceChange: setSaveOnDevice,
     onLoadSavedProgress: loadSavedProgressOnRequest,
     onBeginReview: () => dispatch({ type: 'OPEN_SPECIFICATION' }),
+    onInitialDecision: (decision) => state.activeCaseId && dispatch({ type: 'SET_INITIAL_DECISION', caseId: state.activeCaseId, decision }),
+    onOpenImpact: () => dispatch({ type: 'OPEN_IMPACT' }),
+    onRevisedDecision: (decision) => state.activeCaseId && dispatch({ type: 'SET_REVISED_DECISION', caseId: state.activeCaseId, decision }),
+    onRationaleTextChange: (caseId, value) => dispatch({ type: 'SET_CASE_RATIONALE_TEXT', caseId, value }),
+    onReasonTagToggle: (caseId, tagId) => dispatch({ type: 'TOGGLE_CASE_REASON_TAG', caseId, tagId }),
+    onCompleteCase: () => state.activeCaseId && dispatch({ type: 'COMPLETE_CASE', caseId: state.activeCaseId }),
     onReset: () => dispatch({ type: 'RESET_LAB' }),
   }
 
@@ -33,6 +40,12 @@ interface StageCallbacks {
   onSaveOnDeviceChange: (enabled: boolean) => void
   onLoadSavedProgress: () => void
   onBeginReview: () => void
+  onInitialDecision: (decision: import('../domain/model').PermissionDecision) => void
+  onOpenImpact: () => void
+  onRevisedDecision: (decision: import('../domain/model').PermissionDecision) => void
+  onRationaleTextChange: (caseId: CaseId, value: string) => void
+  onReasonTagToggle: (caseId: CaseId, tagId: import('../domain/model').ReasonTagId) => void
+  onCompleteCase: () => void
   onReset: () => void
 }
 
@@ -45,11 +58,15 @@ function renderStage(stage: LabStage, activeCase: AppCase | null, callbacks: Sta
         ? <FeatureSpecScreen appCase={activeCase} onBeginReview={callbacks.onBeginReview} />
         : <CaseRecoveryScreen onRecover={callbacks.onReset} />
     case 'initial-review':
-      return <StageScreen heading="최초 권한 심사" />
+      return activeCase
+        ? <PermissionReviewScreen appCase={activeCase} mode="initial" progress={callbacks.state.caseProgress[activeCase.id]} onDecision={callbacks.onInitialDecision} onRationaleTextChange={callbacks.onRationaleTextChange} onReasonTagToggle={callbacks.onReasonTagToggle} onReview={callbacks.onOpenImpact} />
+        : <CaseRecoveryScreen onRecover={callbacks.onReset} />
     case 'impact':
       return <StageScreen heading="기능 영향 시뮬레이션" />
     case 'revision-review':
-      return <StageScreen heading="수정 권한 심사" />
+      return activeCase
+        ? <PermissionReviewScreen appCase={activeCase} mode="revision" progress={callbacks.state.caseProgress[activeCase.id]} onDecision={callbacks.onRevisedDecision} onRationaleTextChange={callbacks.onRationaleTextChange} onReasonTagToggle={callbacks.onReasonTagToggle} onReview={callbacks.onCompleteCase} />
+        : <CaseRecoveryScreen onRecover={callbacks.onReset} />
     case 'revocation':
       return <StageScreen heading="권한 철회 미니 활동" />
     case 'report':
