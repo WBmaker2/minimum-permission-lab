@@ -71,6 +71,15 @@ describe('UPDATE_HISTORY', () => {
     })
   })
 
+  it('records the Task16 completion-summary improvement entry', () => {
+    expect(UPDATE_HISTORY).toContainEqual({
+      date: '2026-08-27',
+      category: '개선',
+      summary: '네 사례 완료 요약과 판단 변화 증거 표시',
+      reason: '학생이 최초안과 수정안의 차이를 한눈에 확인하도록 함',
+    })
+  })
+
   it('exposes entries as readonly data', () => {
     const entry: UpdateHistoryEntry = UPDATE_HISTORY[0]
     expect(entry).toBeDefined()

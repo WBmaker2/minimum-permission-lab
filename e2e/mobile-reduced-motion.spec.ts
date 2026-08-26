@@ -53,11 +53,12 @@ test.describe('375px reduced-motion learner flow', () => {
     expect(metrics.targets.filter(({ width, height }) => width < 44 || height < 44)).toEqual([])
 
     const tables = page.locator('.comparison-table-scroll')
+    await expect(tables).toHaveCount(4)
     for (let index = 0; index < await tables.count(); index += 1) {
       const table = tables.nth(index)
       const overflow = await table.evaluate((element) => ({ scrollWidth: element.scrollWidth, clientWidth: element.clientWidth, overflowX: getComputedStyle(element).overflowX }))
       expect(overflow.overflowX).toBe('auto')
-      expect(overflow.scrollWidth).toBeGreaterThanOrEqual(overflow.clientWidth)
+      expect(overflow.scrollWidth).toBeGreaterThan(overflow.clientWidth)
     }
   })
 

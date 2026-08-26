@@ -11,6 +11,12 @@ export const UPDATE_HISTORY: readonly UpdateHistoryEntry[] = [
   {
     date: '2026-08-27',
     category: '개선',
+    summary: '네 사례 완료 요약과 판단 변화 증거 표시',
+    reason: '학생이 최초안과 수정안의 차이를 한눈에 확인하도록 함',
+  },
+  {
+    date: '2026-08-27',
+    category: '개선',
     summary: '모바일·키보드·스크린 리더 검증 보강',
     reason: '375px와 보조기술 사용자가 전체 학습 흐름을 완료하도록 함',
   },

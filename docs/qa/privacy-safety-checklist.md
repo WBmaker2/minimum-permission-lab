@@ -2,7 +2,7 @@
 
 검증일: 2026-08-27
 
-이 문서는 Task14에서 실제로 실행한 자동 검증 결과만 기록합니다. 수동 스크린 리더 검증은 이 작업의 실행 증거가 없으므로 성공으로 표시하지 않습니다.
+이 문서는 Task14–16에서 실제로 실행한 자동 검증 결과만 기록합니다. 수동 스크린 리더 검증은 이 작업의 실행 증거가 없으므로 성공으로 표시하지 않습니다.
 
 ## 자동 검증 명령과 결과
 
@@ -20,13 +20,14 @@
 | ESLint scope fixture | `printf '%s\\n' 'function safe(fetch){ void fetch(url); }' 'const fetch=()=>undefined; void fetch()' 'function safe(navigator){ void navigator.permissions; }' 'function safe(WebSocket){ void new WebSocket(url); }' 'void safe;' \| ./node_modules/.bin/eslint --stdin --stdin-filename src/safe-shadow-fixture.ts` | 통과, 매개변수·로컬 선언으로 shadow된 fetch/navigator/WebSocket을 오탐하지 않음. fixture는 저장소에 만들지 않음 |
 | ESLint type-only fixture | `echo "import type * as window from './mock'; window.fetch(url)" \| ./node_modules/.bin/eslint --stdin --stdin-filename src/type-only.ts` | 의도한 exit 1, type-only import가 실행 전역 capability를 가리지 못하는 우회를 차단함. 일반 value import shadow는 별도 안전 fixture로 통과. fixture는 저장소에 만들지 않음 |
 | ESLint 정책 자동 fixture | `node --test scripts/check-source-policy.test.mjs` 내 ESLint API 호출 | 통과, runtime `fetch`·`window.fetch`·type-only fetch는 nonzero, type-position·value import·local wrapper shadow·object method는 zero를 자동 검증 |
-| 전체 unit | `npm run test:run` | 통과, 정책 19개와 Vitest 19개 파일 194개 테스트 |
-| 전체 coverage | `npm run test:coverage` | 통과, Statements 89.88%, Branches 87.53%, Functions 89.3%, Lines 95.25% |
+| 전체 unit | `npm run test:run` | 통과, 정책 19개와 Vitest 20개 파일 197개 테스트 |
+| 전체 coverage | `npm run test:coverage` | 통과, Statements 90.02%, Branches 87.53%, Functions 89.47%, Lines 95.3% |
 | production build | `npm run build` | 통과, TypeScript 검사와 Vite 정적 산출물 생성 |
 | mobile 브라우저 준비 | `npx playwright install webkit` | 성공, WebKit 26.5 다운로드 완료. 브라우저 산출물은 프로젝트 커밋에 포함하지 않음 |
 | privacy E2E · desktop-chromium | `npm run test:e2e -- e2e/privacy-safety.spec.ts --project=desktop-chromium --workers=1` (전용 `127.0.0.1:44173`) | 통과, 2개 테스트(별명 저장 경계·보고서 경계) |
 | privacy E2E · mobile-375 | `npm run test:e2e -- e2e/privacy-safety.spec.ts --project=mobile-375 --workers=1` (전용 `127.0.0.1:44173`) | 통과, 2개 테스트(별명 저장 경계·보고서 경계) |
 | privacy E2E · 전체 두 프로젝트 | `npm run test:e2e -- e2e/privacy-safety.spec.ts --workers=1` (전용 `127.0.0.1:44173`) | 통과, 4개 테스트(desktop-chromium·mobile-375 각 2개) |
+| Task16 전체 학습 흐름 E2E | `npm run test:e2e -- e2e/full-learning-flow.spec.ts` (전용 `127.0.0.1:44173`) | 통과, 4개 테스트(desktop-chromium·mobile-375 기본 저장/저장 동의 분기) |
 
 ## 증명된 경계
 
@@ -47,4 +48,4 @@
 ## 미실행 또는 후속 검증
 
 - 실제 권한 팝업 확인은 권한 API를 호출하지 않는 소스·request 게이트로 대체했으며, OS 권한 설정을 우회하는 컨텍스트 권한 변경은 하지 않았습니다.
-- 스크린 리더, 키보드 전용 전체 흐름, 375×812 전체 학습 흐름은 Task15의 검증 범위이며 이 문서에서는 성공을 주장하지 않습니다.
+- 스크린 리더(VoiceOver/TalkBack) 수동 검증은 아직 실행하지 않았으며, 자동 axe·키보드·375×812·reduced-motion·full-flow 결과는 위 표와 accessibility checklist에 기록되어 있습니다.

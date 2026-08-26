@@ -42,6 +42,8 @@ describe('ReportScreen', () => {
   it('renders the four comparisons, rubric statuses, controls, and disclaimer', () => {
     render(<ReportScreen report={report()} onPrint={vi.fn()} onReset={vi.fn()} />)
     expect(screen.getByRole('heading', { level: 2, name: '최소 권한 학습 보고서' })).toBeVisible()
+    expect(screen.getByRole('heading', { level: 3, name: '네 사례 완료 요약' })).toBeVisible()
+    expect(screen.getByText('판단이 바뀐 것은 배움의 증거예요')).toBeVisible()
     expect(screen.getByText('가상 학습 모델이며 실제 앱 판정이 아님')).toBeVisible()
     expect(screen.getAllByRole('article')).toHaveLength(4)
     expect(screen.getAllByRole('columnheader', { name: '권한' })).toHaveLength(4)
