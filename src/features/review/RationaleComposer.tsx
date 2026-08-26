@@ -40,7 +40,7 @@ export default function RationaleComposer({
       <p id={helpId}>
         실제 이름·전화번호·주소 등 개인정보를 입력하지 마세요. 이 문장은 AI나 키워드로 채점하지 않으며, 입력한 원문을 바꾸지 않습니다.
       </p>
-      <p>문장틀: 이 기능에 필요한 권한만 선택하고, ___ 정보는 사용하지 않도록 했습니다.</p>
+      <p>문장틀: 나는 [기능]을 위해 [권한]을 [선택]하겠습니다. 그 이유는 [근거]이며, 필요하지 않을 때는 [대안 또는 철회]하겠습니다.</p>
       <div role="group" aria-labelledby={`${idPrefix}-tags-title`}>
         <h4 id={`${idPrefix}-tags-title`}>판단 근거 태그</h4>
         {REASON_TAGS.map(({ id, label }) => {

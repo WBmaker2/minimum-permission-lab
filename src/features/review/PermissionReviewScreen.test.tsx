@@ -105,6 +105,11 @@ describe('PermissionReviewScreen', () => {
     expect(screen.getByRole('button', { name: '선택 검토' })).toBeDisabled()
   })
 
+  it('shows the exact sentence frame for a revision rationale', () => {
+    renderReview({ mode: 'revision', progress: progress({ reasonTags: ['function-connection'], rationaleText: '근거' }) })
+    expect(screen.getByText('문장틀: 나는 [기능]을 위해 [권한]을 [선택]하겠습니다. 그 이유는 [근거]이며, 필요하지 않을 때는 [대안 또는 철회]하겠습니다.')).toBeVisible()
+  })
+
   it('requires a tag and nonblank rationale, passing the exact case id', async () => {
     const user = userEvent.setup()
     renderReview({ mode: 'revision', progress: progress({ reasonTags: [], rationaleText: '' }) })

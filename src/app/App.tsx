@@ -10,6 +10,8 @@ import ImpactScreen from '../features/impact/ImpactScreen'
 import RevokeTrainingScreen from '../features/revoke/RevokeTrainingScreen'
 import { areAllCasesComplete } from './labSelectors'
 import PrimaryActionButton from '../components/PrimaryActionButton'
+import { buildReport } from '../domain/buildReport'
+import ReportScreen from '../features/report/ReportScreen'
 
 export default function App(): ReactElement {
   return <LabProvider><LabApplication /></LabProvider>
@@ -38,7 +40,10 @@ export function LabApplication(): ReactElement {
     onRevocationDecision: (decision) => dispatch({ type: 'SET_REVOCATION_DECISION', decision }),
     onCompleteRevocation: () => dispatch({ type: 'COMPLETE_REVOCATION' }),
     onOpenReport: () => dispatch({ type: 'OPEN_REPORT' }),
-    onReset: () => dispatch({ type: 'RESET_LAB' }),
+    onReset: () => {
+      if (state.saveOnDevice) setSaveOnDevice(false)
+      dispatch({ type: 'RESET_LAB' })
+    },
   }
 
   return <><AppHeader stage={state.stage} />{renderStage(state.stage, activeCase, callbacks)}</>
@@ -107,7 +112,11 @@ function renderStage(stage: LabStage, activeCase: AppCase | null, callbacks: Sta
         onReset={callbacks.onReset}
       />
     case 'report':
-      return <StageScreen heading="학습 보고서" />
+      try {
+        return <ReportScreen report={buildReport(callbacks.state)} onPrint={() => window.print()} onReset={callbacks.onReset} />
+      } catch {
+        return <ReportRecoveryScreen onRecover={callbacks.onReset} />
+      }
     default:
       return assertNever(stage)
   }
@@ -138,6 +147,9 @@ function CaseRecoveryScreen({ onRecover }: { onRecover: () => void }): ReactElem
   return <main><h2>사례를 다시 선택해 주세요</h2><p>선택한 사례를 확인할 수 없습니다. 시작 화면으로 돌아가 사례를 다시 선택하세요.</p><button type="button" onClick={onRecover}>사례 선택으로 돌아가기</button></main>
 }
 
-function StageScreen({ heading }: { heading: string }): ReactElement {
-  return <main><h2>{heading}</h2><p>선택한 사례의 학습 계약을 바탕으로 다음 활동을 준비합니다.</p></main>
+function ReportRecoveryScreen({ onRecover }: { onRecover: () => void }): ReactElement {
+  const handleRecover = () => {
+    if (window.confirm('학습 기록이 완전하지 않습니다. 지금 기록을 지우고 처음부터 다시 시작하시겠습니까?')) onRecover()
+  }
+  return <main><h2>보고서를 만들 수 없습니다</h2><p>학습 기록이 완전하지 않아 보고서를 표시할 수 없습니다. 기록을 지우고 처음부터 다시 시작해 주세요.</p><button type="button" onClick={handleRecover}>처음부터 다시 하기</button></main>
 }
