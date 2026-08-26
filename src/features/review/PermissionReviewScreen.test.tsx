@@ -87,6 +87,7 @@ describe('PermissionReviewScreen', () => {
     expect(action).toBeEnabled()
     expect(action).toHaveClass('gi-pulse')
     expect(screen.getAllByRole('button', { name: /선택 검토/ }).filter((button) => button.classList.contains('gi-pulse'))).toHaveLength(1)
+    expect(action.querySelector('.gi-pulse__step')?.textContent).toBe('단계 3')
   })
 
   it('shows revision rationale controls and keeps whitespace unready', async () => {

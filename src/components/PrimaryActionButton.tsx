@@ -16,7 +16,7 @@ export default function PrimaryActionButton({
   const classes = [className, pulse ? 'gi-pulse' : ''].filter(Boolean).join(' ')
   return (
     <button {...props} className={classes} type={props.type ?? 'button'}>
-      <span aria-hidden="true">단계 {stepNumber}</span> {children}
+      <span className="gi-pulse__step" aria-hidden="true">단계 {stepNumber}</span> {children}
     </button>
   )
 }

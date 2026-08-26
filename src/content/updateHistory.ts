@@ -26,4 +26,10 @@ export const UPDATE_HISTORY: readonly UpdateHistoryEntry[] = [
     summary: '가상 권한 모델과 사례 표현 검토',
     reason: '실제 앱이나 운영체제에 그대로 일반화하지 않도록 경계를 명시함',
   },
+  {
+    date: '2026-08-26',
+    category: '개선',
+    summary: '핵심 버튼 강조와 모션 감소 대체 추가',
+    reason: '중요한 다음 행동을 분명히 하면서 모션 감소 사용자는 고정 강조로 확인하도록 함',
+  },
 ] as const

@@ -82,4 +82,21 @@ describe('App smoke shell', () => {
     await user.click(screen.getByRole('button', { name: '사례 선택으로 돌아가기' }))
     expect(screen.getByRole('heading', { level: 2, name: '학습 시작' })).toBeVisible()
   })
+
+  it('keeps the current stage to at most one emphasized next action', () => {
+    const stageStates: LabState[] = [
+      createInitialLabState(),
+      { ...createInitialLabState(), activeCaseId: 'photo-scan', stage: 'specification' },
+      { ...createInitialLabState(), activeCaseId: 'photo-scan', stage: 'initial-review' },
+      { ...createInitialLabState(), activeCaseId: 'photo-scan', stage: 'impact' },
+      { ...createInitialLabState(), activeCaseId: 'photo-scan', stage: 'revision-review' },
+      { ...createInitialLabState(), stage: 'revocation' },
+    ]
+
+    for (const state of stageStates) {
+      const view = render(<LabProvider initialState={state}><LabApplication /></LabProvider>)
+      expect(view.container.querySelectorAll('.gi-pulse').length).toBeLessThanOrEqual(1)
+      cleanup()
+    }
+  })
 })

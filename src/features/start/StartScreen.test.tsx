@@ -36,11 +36,16 @@ describe('StartScreen', () => {
     expect(screen.getByText('완료')).toBeVisible()
     const start = screen.getByRole('button', { name: '기능 명세 보기' })
     expect(start).toBeDisabled()
+    expect(start).not.toHaveClass('gi-pulse')
+    expect(view.container.querySelectorAll('.gi-pulse')).toHaveLength(0)
     await user.click(screen.getByRole('button', { name: /음성 읽기 연습/ }))
     expect(p.onSelectCase).toHaveBeenCalledWith('voice-reading')
     view.rerender(<StartScreen {...p} state={{ ...p.state, activeCaseId: 'voice-reading' }} />)
-    expect(screen.getByRole('button', { name: '기능 명세 보기' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: '기능 명세 보기' })).toHaveClass('gi-pulse')
+    const selectedStart = screen.getByRole('button', { name: '기능 명세 보기' })
+    expect(selectedStart).toBeEnabled()
+    expect(selectedStart).toHaveClass('gi-pulse')
+    expect(view.container.querySelectorAll('.gi-pulse')).toHaveLength(1)
+    expect(selectedStart.querySelector('.gi-pulse__step')?.textContent).toBe('단계 1')
   })
 
   it('controls explicit save/load actions and selected state', async () => {

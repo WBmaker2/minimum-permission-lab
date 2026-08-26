@@ -1,0 +1,64 @@
+@media print {
+  @page {
+    margin: 1.5cm;
+  }
+
+  header,
+  .update-history-trigger-area,
+  .update-history-dialog-backdrop,
+  button,
+  [role="status"],
+  .report-status {
+    display: none !important;
+  }
+
+  body,
+  main,
+  article,
+  section {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  main {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+
+  article,
+  section,
+  table,
+  blockquote {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  article,
+  section {
+    border: 1px solid #000000;
+    box-shadow: none;
+  }
+
+  table {
+    display: table;
+    width: 100%;
+    overflow: visible;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #000000;
+    color: #000000 !important;
+  }
+
+  th {
+    background: #eeeeee !important;
+  }
+
+  blockquote {
+    border-inline-start: 4px solid #000000;
+    padding-inline-start: 1rem;
+  }
+}
