@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { useCallback, useRef, useState, type ReactElement } from 'react'
 import { APP_CASES } from '../content/cases'
 import AppHeader from '../components/AppHeader'
 import type { AppCase, CaseId, LabState, LabStage, PermissionDecision, RevocationDecision, ConditionalScenarioId, FeatureSwitchId, ReasonTagId } from '../domain/model'
@@ -12,6 +12,9 @@ import { areAllCasesComplete } from './labSelectors'
 import PrimaryActionButton from '../components/PrimaryActionButton'
 import { buildReport } from '../domain/buildReport'
 import ReportScreen from '../features/report/ReportScreen'
+import UpdateHistoryButton from '../components/UpdateHistoryButton'
+import UpdateHistoryDialog from '../components/UpdateHistoryDialog'
+import { UPDATE_HISTORY } from '../content/updateHistory'
 
 export default function App(): ReactElement {
   return <LabProvider><LabApplication /></LabProvider>
@@ -19,6 +22,10 @@ export default function App(): ReactElement {
 
 export function LabApplication(): ReactElement {
   const { state, dispatch, setSaveOnDevice, loadSavedProgressOnRequest } = useLab()
+  const [isUpdateHistoryOpen, setIsUpdateHistoryOpen] = useState(false)
+  const updateHistoryTriggerRef = useRef<HTMLButtonElement>(null)
+  const openUpdateHistory = useCallback(() => setIsUpdateHistoryOpen(true), [])
+  const closeUpdateHistory = useCallback(() => setIsUpdateHistoryOpen(false), [])
   const activeCase = getActiveCase(state.activeCaseId)
   const callbacks: StageCallbacks = {
     state,
@@ -46,7 +53,12 @@ export function LabApplication(): ReactElement {
     },
   }
 
-  return <><AppHeader stage={state.stage} />{renderStage(state.stage, activeCase, callbacks)}</>
+  return <>
+    <AppHeader stage={state.stage} />
+    {renderStage(state.stage, activeCase, callbacks)}
+    <UpdateHistoryButton ref={updateHistoryTriggerRef} onOpen={openUpdateHistory} />
+    {isUpdateHistoryOpen ? <UpdateHistoryDialog entries={UPDATE_HISTORY} onClose={closeUpdateHistory} returnFocusRef={updateHistoryTriggerRef} /> : null}
+  </>
 }
 
 interface StageCallbacks {
