@@ -25,7 +25,7 @@ export default function PermissionChoiceGroup({
   const definition = getPermissionDefinition(permission.id)
 
   return (
-    <div aria-describedby={describedBy}>
+    <div role="radiogroup" aria-label={`${definition.label} 권한 선택`} aria-describedby={describedBy}>
       <span className="learning-choice-badge">학습용 선택지</span>
       {CHOICES.map(({ value: choice, label }) => {
         const id = `${idPrefix}-${choice}`

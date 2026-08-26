@@ -6,7 +6,7 @@ export interface StatusLiveRegionProps {
 
 export default function StatusLiveRegion({ message }: StatusLiveRegionProps): ReactElement {
   return (
-    <p role="status" aria-live="polite" aria-atomic="true">
+    <p data-live-region="status" role="status" aria-live="polite" aria-atomic="true">
       {message}
     </p>
   )

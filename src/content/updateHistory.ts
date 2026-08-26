@@ -9,6 +9,12 @@ export interface UpdateHistoryEntry {
 
 export const UPDATE_HISTORY: readonly UpdateHistoryEntry[] = [
   {
+    date: '2026-08-27',
+    category: '개선',
+    summary: '모바일·키보드·스크린 리더 검증 보강',
+    reason: '375px와 보조기술 사용자가 전체 학습 흐름을 완료하도록 함',
+  },
+  {
     date: '2026-08-26',
     category: '설계',
     summary: '최초 설계 문서 작성',

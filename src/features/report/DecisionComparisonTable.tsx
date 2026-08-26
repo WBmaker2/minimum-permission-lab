@@ -21,27 +21,29 @@ export default function DecisionComparisonTable({ initial, revised, changedPermi
   const initialById = new Map(initial.map((decision) => [decision.permissionId, decision]))
   const revisedById = new Map(revised.map((decision) => [decision.permissionId, decision]))
   return (
-    <table>
-      <caption>최초 선택과 수정 선택 비교</caption>
-      <thead>
-        <tr><th scope="col">권한</th><th scope="col">최초 선택</th><th scope="col">수정 선택</th><th scope="col">변경 여부</th></tr>
-      </thead>
-      <tbody>
-        {PERMISSION_IDS.map((permissionId) => {
-          const definition = getPermissionDefinition(permissionId)
-          const initialChoice = initialById.get(permissionId)?.choice
-          const revisedChoice = revisedById.get(permissionId)?.choice
-          const changed = changedPermissionIds.includes(permissionId)
-          return (
-            <tr key={permissionId}>
-              <th scope="row"><PermissionGlyph permissionId={permissionId} /><span>{definition.label}</span><span>{definition.shapeLabel}</span></th>
-              <td>{initialChoice ? CHOICE_LABELS[initialChoice] : '기록 없음'}</td>
-              <td>{revisedChoice ? CHOICE_LABELS[revisedChoice] : '기록 없음'}</td>
-              <td>{changed ? <span aria-label="판단 변경">◆ 판단 변경</span> : '변경 없음'}</td>
-            </tr>
-          )
-        })}
-      </tbody>
-    </table>
+    <div className="comparison-table-scroll" role="region" aria-label="최초 선택과 수정 선택 비교 표" tabIndex={0}>
+      <table>
+        <caption>최초 선택과 수정 선택 비교</caption>
+        <thead>
+          <tr><th scope="col">권한</th><th scope="col">최초 선택</th><th scope="col">수정 선택</th><th scope="col">변경 여부</th></tr>
+        </thead>
+        <tbody>
+          {PERMISSION_IDS.map((permissionId) => {
+            const definition = getPermissionDefinition(permissionId)
+            const initialChoice = initialById.get(permissionId)?.choice
+            const revisedChoice = revisedById.get(permissionId)?.choice
+            const changed = changedPermissionIds.includes(permissionId)
+            return (
+              <tr key={permissionId}>
+                <th scope="row"><PermissionGlyph permissionId={permissionId} /><span>{definition.label}</span><span>{definition.shapeLabel}</span></th>
+                <td>{initialChoice ? CHOICE_LABELS[initialChoice] : '기록 없음'}</td>
+                <td>{revisedChoice ? CHOICE_LABELS[revisedChoice] : '기록 없음'}</td>
+                <td>{changed ? <span aria-label="판단 변경">◆ 판단 변경</span> : '변경 없음'}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
   )
 }

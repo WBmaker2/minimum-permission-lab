@@ -87,12 +87,22 @@ details,
   font-weight: 700;
 }
 
-table {
-  display: block;
+.comparison-table-scroll {
   max-inline-size: 100%;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  border: 1px solid var(--color-border);
+}
+
+table {
+  min-inline-size: 42rem;
   border-collapse: collapse;
   background: var(--color-surface);
+}
+
+.comparison-table-scroll:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 3px;
 }
 
 caption {

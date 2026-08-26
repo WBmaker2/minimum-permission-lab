@@ -12,6 +12,7 @@ const FOCUSABLE_SELECTOR = 'button:not([disabled])'
 export default function UpdateHistoryDialog({ entries, onClose, returnFocusRef }: UpdateHistoryDialogProps): ReactElement {
   const dialogRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
+  const descriptionId = `${titleId}-description`
 
   useEffect(() => {
     const dialog = dialogRef.current
@@ -61,12 +62,14 @@ export default function UpdateHistoryDialog({ entries, onClose, returnFocusRef }
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={descriptionId}
         tabIndex={-1}
       >
         <div className="update-history-dialog__header">
           <h2 id={titleId}>업데이트 내역</h2>
           <button type="button" onClick={onClose} aria-label="업데이트 내역 닫기">닫기</button>
         </div>
+        <p id={descriptionId}>앱을 개선한 날짜와 이유를 확인합니다.</p>
         <ol>
           {entries.map((entry, index) => (
             <li key={`${entry.date}-${entry.category}-${index}`}>

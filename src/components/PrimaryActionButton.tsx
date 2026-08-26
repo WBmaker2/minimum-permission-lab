@@ -15,7 +15,7 @@ export default function PrimaryActionButton({
 }: PrimaryActionButtonProps): ReactElement {
   const classes = [className, pulse ? 'gi-pulse' : ''].filter(Boolean).join(' ')
   return (
-    <button {...props} className={classes} type={props.type ?? 'button'}>
+    <button {...props} className={classes} data-step={stepNumber} type={props.type ?? 'button'}>
       <span className="gi-pulse__step" aria-hidden="true">단계 {stepNumber}</span> {children}
     </button>
   )

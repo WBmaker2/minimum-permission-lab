@@ -62,6 +62,15 @@ describe('UPDATE_HISTORY', () => {
     })
   })
 
+  it('records the Task15 accessibility improvement entry', () => {
+    expect(UPDATE_HISTORY).toContainEqual({
+      date: '2026-08-27',
+      category: '개선',
+      summary: '모바일·키보드·스크린 리더 검증 보강',
+      reason: '375px와 보조기술 사용자가 전체 학습 흐름을 완료하도록 함',
+    })
+  })
+
   it('exposes entries as readonly data', () => {
     const entry: UpdateHistoryEntry = UPDATE_HISTORY[0]
     expect(entry).toBeDefined()
