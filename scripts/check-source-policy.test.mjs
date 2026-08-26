@@ -359,6 +359,64 @@ test('findForbiddenRuntimeReferences preserves nested external provenance and co
   ])
 })
 
+test('findForbiddenRuntimeReferences never throws for nested object destructuring provenance', () => {
+  const externalSource = 'const root=window; const api={tools:{fetch:root.fetch}}; const {fetch}=api.tools; fetch(url)'
+  let external
+  assert.doesNotThrow(() => {
+    external = findForbiddenRuntimeReferences([{ filePath: 'nested-destructure.ts', source: externalSource }])
+  })
+  assert.ok(external.some(({ pattern }) => pattern === 'fetch('))
+
+  const localSource = 'const root=local; const api={tools:{fetch:root.fetch}}; const {fetch}=api.tools; fetch(url)'
+  let local
+  assert.doesNotThrow(() => {
+    local = findForbiddenRuntimeReferences([{ filePath: 'nested-destructure.ts', source: localSource }])
+  })
+  assert.deepEqual(local, [])
+})
+
+test('findForbiddenRuntimeReferences excludes non-runtime identifier names systematically', () => {
+  const violations = findForbiddenRuntimeReferences([{
+    filePath: 'non-runtime-names.tsx',
+    source: [
+      'enum X { navigator, fetch }',
+      'const x = <div navigator="x" fetch="y" />',
+      'const obj = { get navigator(){return 1}, set fetch(v){} }',
+      'function f<fetch>(){}',
+      'namespace fetch { export const x=1 }',
+      'interface Shape { navigator: string; fetch(): void }',
+      'class Widget { navigator = 1; fetch(){} }',
+      'const value = {navigator}; void value',
+    ].join('\n'),
+  }])
+  assert.deepEqual(violations, [{ filePath: 'non-runtime-names.tsx', line: 8, pattern: 'navigator' }])
+})
+
+test('findForbiddenRuntimeReferences fails closed for unresolved nested and array destructuring', () => {
+  const external = findForbiddenRuntimeReferences([{
+    filePath: 'unresolved-destructure.ts',
+    source: [
+      'const [call] = window; call(url)',
+      'const {tools: {call}} = globalThis; call(url)',
+      'function run([call = local] = globalThis) { call(url) }',
+    ].join('\n'),
+  }])
+  assert.deepEqual(external, [
+    { filePath: 'unresolved-destructure.ts', line: 1, pattern: 'dynamic-policy-access' },
+    { filePath: 'unresolved-destructure.ts', line: 2, pattern: 'dynamic-policy-access' },
+    { filePath: 'unresolved-destructure.ts', line: 3, pattern: 'dynamic-policy-access' },
+  ])
+
+  const local = findForbiddenRuntimeReferences([{
+    filePath: 'safe-destructure.ts',
+    source: [
+      'const local = {}; const [call] = local; call()',
+      'function safe([call = local] = local) { call() }',
+    ].join('\n'),
+  }])
+  assert.deepEqual(local, [])
+})
+
 test('findForbiddenRuntimeReferences ignores non-runtime property names but keeps shorthand values', () => {
   const violations = findForbiddenRuntimeReferences([{
     filePath: 'names.ts',

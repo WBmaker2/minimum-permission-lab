@@ -1,6 +1,6 @@
 # 개인정보·안전 검증 체크리스트
 
-검증일: 2026-08-26
+검증일: 2026-08-27
 
 이 문서는 Task14에서 실제로 실행한 자동 검증 결과만 기록합니다. 수동 스크린 리더 검증은 이 작업의 실행 증거가 없으므로 성공으로 표시하지 않습니다.
 
@@ -10,9 +10,9 @@
 |---|---|---|
 | 소스 정책 RED | `node --test scripts/check-source-policy.test.mjs` (스캐너 구현 전) | 의도한 `ERR_MODULE_NOT_FOUND` 실패 확인 |
 | capability flow RED | `node --test scripts/check-source-policy.test.mjs` (새 획득·property/array·dynamic fixture 직후) | 12개 통과·1개 실패로 array external provenance와 default destructuring 미구현을 확인한 뒤 최소 구현으로 보완 |
-| 소스 정책 단위 | `node --test scripts/check-source-policy.test.mjs` | 통과, 16개 테스트. AST가 computed·optional·window/globalThis/self 래퍼, capability 획득·참조·전달, wrapper alias·static computed·destructuring·object alias, lexical shadow·hoisting·assignment·property/destructuring/array flow·catch/default parameter·중첩 provenance·local import와 analytics 초기화를 포함해 금지 참조를 검출하고 문자열·주석·regex·template plain text 및 로컬 객체 메서드는 제외하며 parse diagnostic도 clean으로 통과시키지 않음 |
+| 소스 정책 단위 | `node --test scripts/check-source-policy.test.mjs` | 통과, 19개 테스트. AST가 computed·optional·window/globalThis/self 래퍼, capability 획득·참조·전달, wrapper alias·static computed·destructuring·object alias, lexical shadow·hoisting·assignment·property/destructuring/array flow·catch/default parameter·중첩 provenance·local import와 analytics 초기화를 포함해 금지 참조를 검출하고 문자열·주석·regex·template plain text 및 로컬 객체 메서드는 제외하며 parse diagnostic도 clean으로 통과시키지 않음. recursive Map provenance, nested/default/array fail-closed와 비실행 이름 fixture도 포함 |
 | 실제 런타임 소스 | `npm run check:policy` | 통과, `0 forbidden runtime references` |
-| Node 정책 표준 게이트 | `npm run test:policy` | 통과, 16개 정책 테스트 |
+| Node 정책 표준 게이트 | `npm run test:policy` | 통과, 19개 정책 테스트 |
 | 안전 문구·업데이트 이력 | `./node_modules/.bin/vitest run src/content/learningNotices.test.ts src/content/updateHistory.test.ts` | 통과, 2개 파일 12개 테스트 |
 | 정적 분석 | `npm run lint` | 통과 |
 | ESLint 우회 fixture | `printf '%s\\n' 'window.gtag("event")' 'globalThis["gtag"]("event")' 'const g = window.gtag; g("event")' 'self.fetch(url)' 'const safe = "fetch("; void safe;' \| ./node_modules/.bin/eslint --stdin --stdin-filename src/policy-fixture.ts` | 의도한 exit 1, 점·계산 gtag 및 별칭·self fetch 우회를 검출하고 안전 문자열은 차단하지 않음. fixture는 저장소에 만들지 않음 |
@@ -20,7 +20,7 @@
 | ESLint scope fixture | `printf '%s\\n' 'function safe(fetch){ void fetch(url); }' 'const fetch=()=>undefined; void fetch()' 'function safe(navigator){ void navigator.permissions; }' 'function safe(WebSocket){ void new WebSocket(url); }' 'void safe;' \| ./node_modules/.bin/eslint --stdin --stdin-filename src/safe-shadow-fixture.ts` | 통과, 매개변수·로컬 선언으로 shadow된 fetch/navigator/WebSocket을 오탐하지 않음. fixture는 저장소에 만들지 않음 |
 | ESLint type-only fixture | `echo "import type * as window from './mock'; window.fetch(url)" \| ./node_modules/.bin/eslint --stdin --stdin-filename src/type-only.ts` | 의도한 exit 1, type-only import가 실행 전역 capability를 가리지 못하는 우회를 차단함. 일반 value import shadow는 별도 안전 fixture로 통과. fixture는 저장소에 만들지 않음 |
 | ESLint 정책 자동 fixture | `node --test scripts/check-source-policy.test.mjs` 내 ESLint API 호출 | 통과, runtime `fetch`·`window.fetch`·type-only fetch는 nonzero, type-position·value import·local wrapper shadow·object method는 zero를 자동 검증 |
-| 전체 unit | `npm run test:run` | 통과, 정책 16개와 Vitest 19개 파일 194개 테스트 |
+| 전체 unit | `npm run test:run` | 통과, 정책 19개와 Vitest 19개 파일 194개 테스트 |
 | 전체 coverage | `npm run test:coverage` | 통과, Statements 89.88%, Branches 87.53%, Functions 89.3%, Lines 95.25% |
 | production build | `npm run build` | 통과, TypeScript 검사와 Vite 정적 산출물 생성 |
 | mobile 브라우저 준비 | `npx playwright install webkit` | 성공, WebKit 26.5 다운로드 완료. 브라우저 산출물은 프로젝트 커밋에 포함하지 않음 |

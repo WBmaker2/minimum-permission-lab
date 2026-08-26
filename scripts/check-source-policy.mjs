@@ -2,19 +2,23 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import ts from 'typescript'
+import {
+  ANALYTICS_INITIALIZERS,
+  CANONICAL_PATTERN_ORDER,
+  CONSTANT_PREFIX,
+  DYNAMIC_PATTERN,
+  NETWORK_GLOBALS,
+  PERMISSION_PROPERTIES,
+  SHADOW_PREFIX,
+  containsExternalProvenance,
+  isProvenanceMap,
+  isProvenanceString,
+  resolveProvenanceProperty,
+} from './source-policy/provenance.mjs'
+import { hasUnresolvedExternalDestructure } from './source-policy/reference-context.mjs'
 
 /** @typedef {{ filePath: string, source: string }} SourcePolicyInput */
 /** @typedef {{ filePath: string, line: number, pattern: string }} PolicyViolation */
-
-const PERMISSION_PROPERTIES = new Set(['permissions', 'geolocation', 'contacts', 'mediaDevices', 'sendBeacon', 'serviceWorker'])
-const NETWORK_GLOBALS = new Set(['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource'])
-const ANALYTICS_INITIALIZERS = new Set(['firebase.initializeApp', 'firebase.analytics', 'analytics.init', 'segment.load', 'gtag'])
-const ALIASABLE_VALUES = new Set(['navigator', 'mediaDevices', 'fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'firebase', 'analytics', 'segment', 'gtag'])
-const GLOBAL_WRAPPERS = new Set(['window', 'globalThis', 'self'])
-const DYNAMIC_PATTERN = 'dynamic-policy-access'
-const SHADOW_PREFIX = '__shadow__:'
-const CONSTANT_PREFIX = '__constant__:'
-const CANONICAL_PATTERN_ORDER = ['navigator.permissions', 'navigator.geolocation', 'navigator.contacts', 'navigator.mediaDevices', 'mediaDevices.getUserMedia', 'navigator.sendBeacon', 'navigator.serviceWorker', 'fetch(', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'firebase.initializeApp', 'firebase.analytics', 'analytics.init', 'segment.load', 'gtag(', DYNAMIC_PATTERN, 'parse-error']
 
 function scriptKindFor(filePath) {
   if (/\.tsx$/.test(filePath)) return ts.ScriptKind.TSX
@@ -132,21 +136,12 @@ function buildAnalysis(sourceFile) {
       const objectBinding = findBinding(expression.text, expression.getStart(sourceFile))
       if (objectBinding?.objectProperties?.has(property)) return objectBinding.objectProperties.get(property)
     }
-    const baseProperties = base instanceof Map ? base : null
-    if (baseProperties?.has(property)) return baseProperties.get(property)
-    if (baseProperties) return null
-    if (base.startsWith(SHADOW_PREFIX)) return `${base}.${property}`
-    if (GLOBAL_WRAPPERS.has(base) && ALIASABLE_VALUES.has(property)) return property
-    if (base === 'navigator') return `navigator.${property}`
-    if (base === 'navigator.mediaDevices' && property === 'getUserMedia') return 'mediaDevices.getUserMedia'
-    return `${base}.${property}`
+    if (isProvenanceMap(base)) return base.has(property) ? base.get(property) : null
+    return resolveProvenanceProperty(base, property)
   }
   const resolveFromBase = (base, property) => {
-    if (!base || base.startsWith(SHADOW_PREFIX)) return base ? `${base}.${property}` : null
-    if (GLOBAL_WRAPPERS.has(base) && ALIASABLE_VALUES.has(property)) return property
-    if (base === 'navigator') return `navigator.${property}`
-    if (base === 'navigator.mediaDevices' && property === 'getUserMedia') return 'mediaDevices.getUserMedia'
-    return `${base}.${property}`
+    if (!base) return null
+    return resolveProvenanceProperty(base, property)
   }
   const resolveObjectProperties = (initializer) => {
     if (ts.isArrayLiteralExpression(initializer)) return new Map(initializer.elements.map((element, index) => [String(index), resolveObjectProperties(element) ?? resolveExpression(element)]))
@@ -172,6 +167,7 @@ function buildAnalysis(sourceFile) {
   }
   const assignBinding = (binding, resolved) => {
     if (!binding || !resolved) return false
+    if (!isProvenanceString(resolved)) return false
     if (resolved.startsWith(CONSTANT_PREFIX)) {
       const constant = resolved.slice(CONSTANT_PREFIX.length)
       const changed = binding.constant !== constant || binding.alias !== null || binding.objectProperties !== null
@@ -186,6 +182,17 @@ function buildAnalysis(sourceFile) {
     binding.constant = null
     binding.objectProperties = null
     return changed
+  }
+  const assignResolvedBinding = (binding, resolved) => {
+    if (!binding || !resolved) return false
+    if (!isProvenanceMap(resolved)) return assignBinding(binding, resolved)
+    const current = binding.objectProperties
+    const same = current && JSON.stringify([...current]) === JSON.stringify([...resolved])
+    if (same && binding.alias === null && binding.constant === null) return false
+    binding.objectProperties = resolved
+    binding.alias = null
+    binding.constant = null
+    return true
   }
   const assignObjectProperty = (target, resolved) => {
     const member = unwrap(target)
@@ -227,13 +234,23 @@ function buildAnalysis(sourceFile) {
       let propertyName = String(index)
       let bindingNode = null
       if (ts.isBindingElement(element)) {
-        propertyName = element.propertyName && (ts.isIdentifier(element.propertyName) || ts.isStringLiteralLike(element.propertyName)) ? element.propertyName.text : element.name.text
-        bindingNode = ts.isIdentifier(element.name) ? element.name : null
-      } else if (ts.isPropertyAssignment(element) && ts.isIdentifier(element.initializer)) {
+        if (element.dotDotDotToken) continue
+        propertyName = ts.isArrayBindingPattern(target)
+          ? String(index)
+          : element.propertyName && (ts.isIdentifier(element.propertyName) || ts.isStringLiteralLike(element.propertyName))
+            ? element.propertyName.text
+            : ts.isIdentifier(element.name) ? element.name.text : propertyName
+        bindingNode = element.name
+      } else if (ts.isPropertyAssignment(element)) {
         propertyName = ts.isIdentifier(element.name) || ts.isStringLiteralLike(element.name) ? element.name.text : propertyName
         bindingNode = element.initializer
       }
-      if (bindingNode) changed = assignBinding(findBinding(bindingNode.text, bindingNode.getStart(sourceFile)), resolveFromBase(base, propertyName)) || changed
+      const resolved = resolveFromBase(base, propertyName)
+      if (bindingNode && ts.isIdentifier(bindingNode)) {
+        changed = assignResolvedBinding(findBinding(bindingNode.text, bindingNode.getStart(sourceFile)), resolved) || changed
+      } else if (bindingNode && (ts.isObjectBindingPattern(bindingNode) || ts.isArrayBindingPattern(bindingNode))) {
+        changed = assignDestructuredBindings(bindingNode, resolved) || changed
+      }
     }
     return changed
   }
@@ -241,14 +258,8 @@ function buildAnalysis(sourceFile) {
     let changed = false
     for (const declaration of declarations) {
       if (!ts.isIdentifier(declaration.node.name)) {
-        const base = declaration.node.initializer ? resolveExpression(declaration.node.initializer) : null
-        if (base) for (const element of declaration.node.name.elements) {
-          if (!ts.isBindingElement(element) || !ts.isIdentifier(element.name)) continue
-          const property = element.propertyName && (ts.isIdentifier(element.propertyName) || ts.isStringLiteralLike(element.propertyName)) ? element.propertyName.text : element.name.text
-          const binding = findBinding(element.name.text, element.name.getStart(sourceFile))
-          const resolved = resolveFromBase(base, property)
-          if (binding && resolved && binding.alias !== resolved) { binding.alias = resolved; changed = true }
-        }
+        const base = declaration.node.initializer ? (ts.isIdentifier(declaration.node.initializer) ? findBinding(declaration.node.initializer.text, declaration.node.initializer.getStart(sourceFile))?.objectProperties ?? resolveExpression(declaration.node.initializer) : resolveExpression(declaration.node.initializer)) : null
+        if (base) changed = assignDestructuredBindings(declaration.node.name, base) || changed
         continue
       }
       const binding = findBinding(declaration.node.name.text, declaration.node.name.getStart(sourceFile))
@@ -284,20 +295,19 @@ function buildAnalysis(sourceFile) {
   }
   analysis.resolveExpression = resolveExpression
   analysis.staticPropertyName = staticPropertyName
+  analysis.resolveDestructureBase = (node) => {
+    const current = unwrap(node)
+    if (ts.isIdentifier(current)) return analysis.findBinding(current.text, current.getStart(sourceFile))?.objectProperties ?? resolveExpression(node)
+    return resolveExpression(node)
+  }
   analysis.hasExternalProvenance = (node) => {
     const current = unwrap(node)
     const resolved = resolveExpression(node)
     const binding = ts.isIdentifier(current) ? analysis.findBinding(current.text, current.getStart(sourceFile)) : null
-    const hasExternalValue = (value) => {
-      if (value instanceof Map) return [...value.values()].some(hasExternalValue)
-      return Boolean(value && !value.startsWith(SHADOW_PREFIX) && !value.startsWith(CONSTANT_PREFIX) && (GLOBAL_WRAPPERS.has(value) || ALIASABLE_VALUES.has(value) || value.startsWith('navigator.') || value.startsWith('mediaDevices.') || [...GLOBAL_WRAPPERS].some((wrapper) => value.startsWith(`${wrapper}.`))))
-    }
-    if (binding?.objectProperties && hasExternalValue(binding.objectProperties)) return true
-    if (resolved instanceof Map) return hasExternalValue(resolved)
-    if (!resolved || resolved.startsWith(SHADOW_PREFIX) || resolved.startsWith(CONSTANT_PREFIX)) return false
-    if (GLOBAL_WRAPPERS.has(resolved) || ALIASABLE_VALUES.has(resolved)) return true
-    if ([...GLOBAL_WRAPPERS].some((wrapper) => resolved.startsWith(`${wrapper}.`))) return true
-    if (resolved.startsWith('navigator.') || resolved.startsWith('mediaDevices.')) return true
+    if (binding?.objectProperties && containsExternalProvenance(binding.objectProperties)) return true
+    if (isProvenanceMap(resolved)) return containsExternalProvenance(resolved)
+    if (!isProvenanceString(resolved)) return false
+    if (containsExternalProvenance(resolved)) return true
     return (ts.isPropertyAccessExpression(current) || ts.isElementAccessExpression(current)) && analysis.hasExternalProvenance(current.expression)
   }
   return analysis
@@ -313,6 +323,10 @@ function canonicalPattern(resolved) {
   if (resolved === 'firebase' || resolved === 'analytics' || resolved === 'segment') return resolved
   if (ANALYTICS_INITIALIZERS.has(resolved)) return resolved === 'gtag' ? 'gtag(' : resolved
   return null
+}
+
+function isKnownExternalProperty(_base, _property, resolved) {
+  return canonicalPattern(resolved) !== null
 }
 
 function isBindingName(node, parent) {
@@ -334,7 +348,21 @@ function isObjectPropertyName(node, parent) {
 }
 
 function isNonRuntimeMemberName(node, parent) {
-  return Boolean(parent && (ts.isMethodDeclaration(parent) || ts.isMethodSignature(parent) || ts.isPropertySignature(parent) || ts.isPropertyDeclaration(parent)) && parent.name === node)
+  if (!parent || parent.name !== node) return false
+  return ts.isMethodDeclaration(parent)
+    || ts.isMethodSignature(parent)
+    || ts.isPropertySignature(parent)
+    || ts.isPropertyDeclaration(parent)
+    || ts.isGetAccessor(parent)
+    || ts.isSetAccessor(parent)
+    || ts.isEnumMember(parent)
+    || ts.isJsxAttribute(parent)
+    || parent.kind === ts.SyntaxKind.TypeParameter
+    || ts.isModuleDeclaration(parent)
+    || ts.isClassDeclaration(parent)
+    || ts.isInterfaceDeclaration(parent)
+    || ts.isEnumDeclaration(parent)
+    || ts.isTypeAliasDeclaration(parent)
 }
 
 function externalModulePattern(moduleSpecifier) {
@@ -381,9 +409,18 @@ function findAstViolations(input) {
       const pattern = externalModulePattern(node.moduleSpecifier.text)
       if (pattern) add(node.moduleSpecifier, pattern)
     }
-    if (ts.isVariableDeclaration(node) && node.initializer && dynamicBindingProperty(node.name) && analysis.hasExternalProvenance(node.initializer)) add(dynamicBindingProperty(node.name), DYNAMIC_PATTERN)
-    if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && dynamicBindingProperty(node.left) && analysis.hasExternalProvenance(node.right)) add(dynamicBindingProperty(node.left), DYNAMIC_PATTERN)
-    if (ts.isParameter(node) && node.initializer && dynamicBindingProperty(node.name) && analysis.hasExternalProvenance(node.initializer)) add(dynamicBindingProperty(node.name), DYNAMIC_PATTERN)
+    if (ts.isVariableDeclaration(node) && node.initializer && analysis.hasExternalProvenance(node.initializer)) {
+      const dynamic = dynamicBindingProperty(node.name)
+      if (dynamic || hasUnresolvedExternalDestructure(node.name, analysis.resolveDestructureBase(node.initializer), isKnownExternalProperty)) add(dynamic ?? node.name, DYNAMIC_PATTERN)
+    }
+    if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && analysis.hasExternalProvenance(node.right)) {
+      const dynamic = dynamicBindingProperty(node.left)
+      if (dynamic || hasUnresolvedExternalDestructure(node.left, analysis.resolveDestructureBase(node.right), isKnownExternalProperty)) add(dynamic ?? node.left, DYNAMIC_PATTERN)
+    }
+    if (ts.isParameter(node) && node.initializer && analysis.hasExternalProvenance(node.initializer)) {
+      const dynamic = dynamicBindingProperty(node.name)
+      if (dynamic || hasUnresolvedExternalDestructure(node.name, analysis.resolveDestructureBase(node.initializer), isKnownExternalProperty)) add(dynamic ?? node.name, DYNAMIC_PATTERN)
+    }
     if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)) {
       const pattern = canonicalPattern(analysis.resolveExpression(node))
       const dynamic = ts.isElementAccessExpression(node) && !analysis.staticPropertyName(node)
