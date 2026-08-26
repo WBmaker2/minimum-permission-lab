@@ -6,6 +6,7 @@ import { LabProvider, useLab } from './LabProvider'
 import StartScreen from '../features/start/StartScreen'
 import FeatureSpecScreen from '../features/specification/FeatureSpecScreen'
 import PermissionReviewScreen from '../features/review/PermissionReviewScreen'
+import ImpactScreen from '../features/impact/ImpactScreen'
 
 export default function App(): ReactElement {
   return <LabProvider><LabApplication /></LabProvider>
@@ -23,6 +24,9 @@ export function LabApplication(): ReactElement {
     onBeginReview: () => dispatch({ type: 'OPEN_SPECIFICATION' }),
     onInitialDecision: (decision) => state.activeCaseId && dispatch({ type: 'SET_INITIAL_DECISION', caseId: state.activeCaseId, decision }),
     onOpenImpact: () => dispatch({ type: 'OPEN_IMPACT' }),
+    onFeatureSwitchChange: (caseId, switchId, enabled) => dispatch({ type: 'SET_FEATURE_SWITCH', caseId, switchId, enabled }),
+    onAcknowledgeCondition: (caseId, conditionId) => dispatch({ type: 'ACKNOWLEDGE_CONDITION', caseId, conditionId }),
+    onControlActionChange: (caseId, action) => dispatch({ type: 'SET_CONTROL_ACTION', caseId, action }),
     onRevisedDecision: (decision) => state.activeCaseId && dispatch({ type: 'SET_REVISED_DECISION', caseId: state.activeCaseId, decision }),
     onRationaleTextChange: (caseId, value) => dispatch({ type: 'SET_CASE_RATIONALE_TEXT', caseId, value }),
     onReasonTagToggle: (caseId, tagId) => dispatch({ type: 'TOGGLE_CASE_REASON_TAG', caseId, tagId }),
@@ -42,6 +46,9 @@ interface StageCallbacks {
   onBeginReview: () => void
   onInitialDecision: (decision: import('../domain/model').PermissionDecision) => void
   onOpenImpact: () => void
+  onFeatureSwitchChange: (caseId: CaseId, switchId: import('../domain/model').FeatureSwitchId, enabled: boolean) => void
+  onAcknowledgeCondition: (caseId: CaseId, conditionId: import('../domain/model').ConditionalScenarioId) => void
+  onControlActionChange: (caseId: CaseId, action: 'alternative' | 'revoke') => void
   onRevisedDecision: (decision: import('../domain/model').PermissionDecision) => void
   onRationaleTextChange: (caseId: CaseId, value: string) => void
   onReasonTagToggle: (caseId: CaseId, tagId: import('../domain/model').ReasonTagId) => void
@@ -62,7 +69,16 @@ function renderStage(stage: LabStage, activeCase: AppCase | null, callbacks: Sta
         ? <PermissionReviewScreen appCase={activeCase} mode="initial" progress={callbacks.state.caseProgress[activeCase.id]} onDecision={callbacks.onInitialDecision} onRationaleTextChange={callbacks.onRationaleTextChange} onReasonTagToggle={callbacks.onReasonTagToggle} onReview={callbacks.onOpenImpact} />
         : <CaseRecoveryScreen onRecover={callbacks.onReset} />
     case 'impact':
-      return <StageScreen heading="기능 영향 시뮬레이션" />
+      return activeCase
+        ? <ImpactScreen
+            appCase={activeCase}
+            progress={callbacks.state.caseProgress[activeCase.id]}
+            onFeatureSwitchChange={callbacks.onFeatureSwitchChange}
+            onAcknowledgeCondition={callbacks.onAcknowledgeCondition}
+            onControlActionChange={callbacks.onControlActionChange}
+            onBeginRevision={callbacks.onOpenImpact}
+          />
+        : <CaseRecoveryScreen onRecover={callbacks.onReset} />
     case 'revision-review':
       return activeCase
         ? <PermissionReviewScreen appCase={activeCase} mode="revision" progress={callbacks.state.caseProgress[activeCase.id]} onDecision={callbacks.onRevisedDecision} onRationaleTextChange={callbacks.onRationaleTextChange} onReasonTagToggle={callbacks.onReasonTagToggle} onReview={callbacks.onCompleteCase} />

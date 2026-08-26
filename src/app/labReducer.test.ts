@@ -110,6 +110,18 @@ describe('labReducer', () => {
     expect(state.caseProgress['class-map'].enabledFeatureSwitchIds).toEqual(['map-current-position'])
   })
 
+  it('guards impact controls by active case and stage while preserving progress identity on duplicates', () => {
+    const state = toImpact()
+    expect(labReducer(state, { type: 'SET_CONTROL_ACTION', caseId: 'photo-scan', action: 'alternative' })).toBe(state)
+    expect(labReducer(state, { type: 'SET_FEATURE_SWITCH', caseId: 'voice-reading', switchId: 'map-current-position', enabled: true })).toBe(state)
+    expect(labReducer(state, { type: 'ACKNOWLEDGE_CONDITION', caseId: 'voice-reading', conditionId: 'map-current-position-opt-in' })).toBe(state)
+
+    const selected = labReducer(state, { type: 'SET_CONTROL_ACTION', caseId: 'voice-reading', action: 'alternative' })
+    expect(selected.caseProgress['voice-reading'].initialDecisions).toBe(state.caseProgress['voice-reading'].initialDecisions)
+    expect(labReducer(selected, { type: 'SET_CONTROL_ACTION', caseId: 'voice-reading', action: 'alternative' })).toBe(selected)
+    expect(labReducer(selected, { type: 'OPEN_IMPACT' })).toBe(selected)
+  })
+
   it('treats cases without conditions as automatically satisfied', () => {
     const state = reduce(
       createInitialLabState(),

@@ -227,4 +227,37 @@ describe('PermissionReviewScreen', () => {
     renderReview()
     expect(screen.queryByText(/틀렸|무서|위험하니 반드시/)).not.toBeInTheDocument()
   })
+
+  it('shows the initial choices as a read-only comparison during revision', async () => {
+    const user = userEvent.setup()
+    const initialDecisions = {
+      camera: { permissionId: 'camera' as const, choice: 'allow-current-feature' as const },
+      microphone: { permissionId: 'microphone' as const, choice: 'deny' as const },
+      location: { permissionId: 'location' as const, choice: 'more-info' as const },
+      contacts: { permissionId: 'contacts' as const, choice: 'deny' as const },
+    }
+    const { rerender } = renderReview({ mode: 'revision', progress: progress({ initialDecisions, revisedDecisions: {} }) })
+    const comparison = screen.getByRole('heading', { level: 3, name: '최초 선택 비교' }).closest('section')!
+    expect(within(comparison).getByText('카메라')).toBeVisible()
+    expect(within(comparison).getByText('이번 기능에만 허용')).toBeVisible()
+    expect(within(comparison).getAllByText('허용하지 않음')).toHaveLength(2)
+    expect(within(comparison).getByText('설명을 더 확인')).toBeVisible()
+    expect(within(comparison).queryAllByRole('radio')).toHaveLength(0)
+    expect(within(comparison).queryAllByRole('checkbox')).toHaveLength(0)
+
+    const initialSnapshot = structuredClone(initialDecisions)
+    rerender(
+      <PermissionReviewScreen
+        appCase={APP_CASES['photo-scan']}
+        mode="revision"
+        progress={progress({ initialDecisions, revisedDecisions: { camera: { permissionId: 'camera', choice: 'deny' } } })}
+        onDecision={vi.fn()}
+        onRationaleTextChange={vi.fn()}
+        onReasonTagToggle={vi.fn()}
+        onReview={vi.fn()}
+      />,
+    )
+    await user.click(screen.getAllByRole('radio', { name: '이번 기능에만 허용' })[1])
+    expect(initialDecisions).toEqual(initialSnapshot)
+  })
 })
