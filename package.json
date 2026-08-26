@@ -8,9 +8,10 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test:policy": "node --test scripts/check-source-policy.test.mjs",
+    "test": "npm run test:policy && vitest src",
+    "test:run": "npm run test:policy && vitest run src",
+    "test:coverage": "npm run test:policy && vitest run --coverage src",
     "test:e2e": "playwright test",
     "check:policy": "node scripts/check-source-policy.mjs"
   },
