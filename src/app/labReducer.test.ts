@@ -197,7 +197,14 @@ describe('labReducer', () => {
     expect(flagged.saveOnDevice).toBe(true)
     expect(initial.saveOnDevice).toBe(false)
     const loaded: LabState = { ...initial, saveOnDevice: true, statusMessage: '학습 진행을 불러왔습니다.' }
-    expect(labReducer(initial, { type: 'LOAD_SAVED_PROGRESS', state: loaded })).toBe(loaded)
+    const loadedState = labReducer(initial, { type: 'LOAD_SAVED_PROGRESS', state: loaded })
+    expect(loadedState).toEqual(expect.objectContaining({ ...loaded, statusMessage: expect.any(String) }))
+    expect(loadedState).not.toBe(loaded)
+    expect(loadedState.caseProgress).not.toBe(loaded.caseProgress)
+    loaded.caseProgress['photo-scan'].reasonTags = ['user-control']
+    expect(loadedState.caseProgress['photo-scan'].reasonTags).toEqual([])
+    loaded.revocationDecisions.camera = { permissionId: 'camera', action: 'revoke-now' }
+    expect(loadedState.revocationDecisions).toEqual({})
     const reset = labReducer(flagged, { type: 'RESET_LAB' })
     expect(reset).not.toBe(flagged)
     expect(reset).toEqual(createInitialLabState())

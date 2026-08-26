@@ -5,6 +5,8 @@ import type { LabAction } from './labReducer'
 export interface LabContextValue {
   state: LabState
   dispatch: Dispatch<LabAction>
+  setSaveOnDevice: (enabled: boolean) => void
+  loadSavedProgressOnRequest: () => void
 }
 
 export const LabContext = createContext<LabContextValue | null>(null)

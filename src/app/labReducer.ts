@@ -11,6 +11,7 @@ import type {
   ReasonTagId,
   RevocationDecision,
 } from '../domain/model'
+import { RESTORED_STATUS_MESSAGE } from '../storage/progressStorage'
 
 export type LabAction =
   | { type: 'SELECT_CASE'; caseId: CaseId }
@@ -88,6 +89,33 @@ function readyForComplete(progress: CaseProgress, caseId: CaseId): boolean {
 
 function withCaseProgress(state: LabState, caseId: CaseId, progress: CaseProgress): LabState {
   return { ...state, caseProgress: { ...state.caseProgress, [caseId]: progress } }
+}
+
+function copyLabState(state: LabState): LabState {
+  const caseProgress = {} as Record<CaseId, CaseProgress>
+  for (const caseId of CASE_ORDER) {
+    const progress = state.caseProgress[caseId]
+    caseProgress[caseId] = {
+      initialDecisions: Object.fromEntries(Object.entries(progress.initialDecisions).map(([id, decision]) => [id, { ...decision }])) as CaseProgress['initialDecisions'],
+      revisedDecisions: Object.fromEntries(Object.entries(progress.revisedDecisions).map(([id, decision]) => [id, { ...decision }])) as CaseProgress['revisedDecisions'],
+      reasonTags: [...progress.reasonTags],
+      rationaleText: progress.rationaleText,
+      enabledFeatureSwitchIds: [...progress.enabledFeatureSwitchIds],
+      acknowledgedConditionIds: [...progress.acknowledgedConditionIds],
+      impactViewed: progress.impactViewed,
+      controlAction: progress.controlAction,
+      completed: progress.completed,
+    }
+  }
+  return {
+    stage: state.stage,
+    activeCaseId: state.activeCaseId,
+    caseProgress,
+    revocationCompleted: state.revocationCompleted,
+    revocationDecisions: Object.fromEntries(Object.entries(state.revocationDecisions).map(([id, decision]) => [id, { ...decision }])) as LabState['revocationDecisions'],
+    saveOnDevice: state.saveOnDevice,
+    statusMessage: RESTORED_STATUS_MESSAGE,
+  }
 }
 
 export function createInitialLabState(): LabState {
@@ -218,7 +246,7 @@ export function labReducer(state: LabState, action: LabAction): LabState {
     case 'SET_SAVE_ON_DEVICE':
       return state.saveOnDevice === action.enabled ? state : { ...state, saveOnDevice: action.enabled }
     case 'LOAD_SAVED_PROGRESS':
-      return state.stage === 'start' ? action.state : state
+      return state.stage === 'start' ? copyLabState(action.state) : state
     case 'RESET_LAB':
       return createInitialLabState()
   }
