@@ -1,0 +1,14 @@
+const COMMON_LEARNING_SAFETY_CONTRACT =
+  '실제 기기 권한을 요청하지 않는 가상 실습입니다. 입력한 별명은 임시로만 사용하며 저장하거나 전송하지 않습니다. 이름·전화번호·주소 등 개인정보 입력 금지 원칙을 지키며 개인정보는 입력하지 않습니다. 권한은 필요한 순간에 최소한으로 허용하고 나중에 철회할 수 있습니다.'
+
+export const LEARNING_MODEL_NOTICE =
+  `이 활동은 가상 학습 모델이며 실제 앱 판정이 아님을 알려 드립니다. ${COMMON_LEARNING_SAFETY_CONTRACT} 사례의 계약을 읽고 이유를 비교해 보세요.`
+
+export const TEACHER_GUIDE_NOTICE =
+  '권한 화면과 표현은 기기와 운영체제에 따라 다를 수 있음에 유의하세요. 실제 사용 전에는 해당 기기의 공식 안내를 확인해 주세요.'
+
+export const HELP_REQUEST_NOTICE =
+  '권한 선택이 어렵거나 궁금한 점이 있으면 교사나 보호자에게 도움을 요청하세요. 함께 계약을 다시 읽어 보면 됩니다.'
+
+export const NOT_IN_SCOPE_NOTICE =
+  '이 활동은 데이터 정제, 미디어 사용 시간 진단, 실제 보안 검사, 실제 앱 추천, 실제 앱 차단을 다루지 않습니다. 학습용 계약 비교만 연습합니다.'
