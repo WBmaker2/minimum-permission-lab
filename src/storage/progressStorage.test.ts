@@ -176,4 +176,23 @@ describe('progressStorage', () => {
 
     expect(loadSavedProgress(storage)).toBeNull()
   })
+
+  it('rejects a class-map condition acknowledgement when its feature switch is missing', () => {
+    const source = createStateWithCompletedCases()
+    const forged: LabState = {
+      ...source,
+      caseProgress: {
+        ...source.caseProgress,
+        'class-map': {
+          ...source.caseProgress['class-map'],
+          enabledFeatureSwitchIds: [],
+          acknowledgedConditionIds: ['map-current-position-opt-in'],
+        },
+      },
+    }
+    const storage = memoryStorage()
+    saveProgress(storage, forged)
+
+    expect(loadSavedProgress(storage)).toBeNull()
+  })
 })

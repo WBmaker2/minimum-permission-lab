@@ -153,4 +153,20 @@ describe('buildReport', () => {
   it('builds a report for a semantic completed state with conditional acknowledgements', () => {
     expect(buildReport(validState()).cases).toHaveLength(CASE_ORDER.length)
   })
+
+  it('fails closed when class-map condition acknowledgement lacks its feature switch', () => {
+    const state = validState()
+    const forged: LabState = {
+      ...state,
+      caseProgress: {
+        ...state.caseProgress,
+        'class-map': {
+          ...state.caseProgress['class-map'],
+          enabledFeatureSwitchIds: [],
+          acknowledgedConditionIds: ['map-current-position-opt-in'],
+        },
+      },
+    }
+    expect(() => buildReport(forged)).toThrow(/보고서/)
+  })
 })

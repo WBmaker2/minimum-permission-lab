@@ -12,6 +12,7 @@ import type {
   RevocationDecision,
 } from '../domain/model'
 import { RESTORED_STATUS_MESSAGE } from '../storage/progressStorage'
+import { areAllCasesComplete, isCaseProgressReadyForCompletion, isCaseProgressComplete } from './labSelectors'
 
 export type LabAction =
   | { type: 'SELECT_CASE'; caseId: CaseId }
@@ -86,18 +87,6 @@ function hasAllConditions(caseId: CaseId, acknowledged: readonly ConditionalScen
   return caseConditionIds(caseId).every((conditionId) => acknowledged.includes(conditionId))
 }
 
-function readyForComplete(progress: CaseProgress, caseId: CaseId): boolean {
-  return (
-    hasAllDecisions(progress.initialDecisions) &&
-    progress.impactViewed &&
-    hasAllConditions(caseId, progress.acknowledgedConditionIds) &&
-    hasAllDecisions(progress.revisedDecisions) &&
-    progress.reasonTags.length >= 1 &&
-    progress.rationaleText.trim().length > 0 &&
-    progress.controlAction !== null
-  )
-}
-
 function withCaseProgress(state: LabState, caseId: CaseId, progress: CaseProgress): LabState {
   return { ...state, caseProgress: { ...state.caseProgress, [caseId]: progress } }
 }
@@ -146,14 +135,14 @@ export function labReducer(state: LabState, action: LabAction): LabState {
   switch (action.type) {
     case 'SELECT_CASE': {
       const progress = state.caseProgress[action.caseId]
-      if (state.stage !== 'start' || !isKnownCase(action.caseId) || !progress || progress.completed) return state
+      if (state.stage !== 'start' || !isKnownCase(action.caseId) || !progress || isCaseProgressComplete(action.caseId, progress)) return state
       if (state.activeCaseId === action.caseId) return state
       return { ...state, activeCaseId: action.caseId }
     }
     case 'OPEN_SPECIFICATION': {
       if (!state.activeCaseId || !isKnownCase(state.activeCaseId)) return state
       const progress = state.caseProgress[state.activeCaseId]
-      if (progress?.completed) return state
+      if (progress && isCaseProgressComplete(state.activeCaseId, progress)) return state
       if (state.stage === 'start') return { ...state, stage: 'specification' }
       if (state.stage === 'specification') return { ...state, stage: 'initial-review' }
       return state
@@ -237,22 +226,22 @@ export function labReducer(state: LabState, action: LabAction): LabState {
     case 'COMPLETE_CASE': {
       if (state.stage !== 'revision-review' || state.activeCaseId !== action.caseId) return state
       const progress = state.caseProgress[action.caseId]
-      if (!progress || !readyForComplete(progress, action.caseId)) return state
+      if (!progress || !isCaseProgressReadyForCompletion(action.caseId, progress)) return state
       return withCaseProgress({ ...state, stage: 'start', activeCaseId: null }, action.caseId, { ...progress, completed: true })
     }
     case 'OPEN_REVOCATION':
-      if (state.stage !== 'start' || state.revocationCompleted || CASE_ORDER.some((caseId) => !state.caseProgress[caseId]?.completed)) return state
+      if (state.stage !== 'start' || state.revocationCompleted || !areAllCasesComplete(state)) return state
       return { ...state, stage: 'revocation', activeCaseId: null }
     case 'SET_REVOCATION_DECISION':
       if (state.stage !== 'revocation' || state.revocationCompleted || !isKnownPermission(action.decision.permissionId) || !isRevocationAction(action.decision.action)) return state
       if (state.revocationDecisions[action.decision.permissionId]?.action === action.decision.action) return state
       return { ...state, revocationDecisions: { ...state.revocationDecisions, [action.decision.permissionId]: { ...action.decision } } }
     case 'COMPLETE_REVOCATION':
-      if (state.stage !== 'revocation' || !CASE_ORDER.every((caseId) => state.caseProgress[caseId]?.completed) || !hasValidRevocationDecisions(state.revocationDecisions) || !Object.values(state.revocationDecisions).some((decision) => decision?.action === 'revoke-now')) return state
+      if (state.stage !== 'revocation' || !areAllCasesComplete(state) || !hasValidRevocationDecisions(state.revocationDecisions) || !Object.values(state.revocationDecisions).some((decision) => decision?.action === 'revoke-now')) return state
       if (state.revocationCompleted) return state
       return { ...state, revocationCompleted: true }
     case 'OPEN_REPORT':
-      if (state.stage !== 'revocation' || !CASE_ORDER.every((caseId) => state.caseProgress[caseId]?.completed) || !state.revocationCompleted || !hasValidRevocationDecisions(state.revocationDecisions) || !Object.values(state.revocationDecisions).some((decision) => decision?.action === 'revoke-now')) return state
+      if (state.stage !== 'revocation' || !areAllCasesComplete(state) || !state.revocationCompleted || !hasValidRevocationDecisions(state.revocationDecisions) || !Object.values(state.revocationDecisions).some((decision) => decision?.action === 'revoke-now')) return state
       return { ...state, stage: 'report', activeCaseId: null }
     case 'SET_SAVE_ON_DEVICE':
       return state.saveOnDevice === action.enabled ? state : { ...state, saveOnDevice: action.enabled }

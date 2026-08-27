@@ -38,6 +38,18 @@ function hasAllConditions(caseId: CaseId, acknowledged: unknown): boolean {
   return acknowledged.every((conditionId) => expected.includes(conditionId)) && expected.every((conditionId) => acknowledged.includes(conditionId))
 }
 
+function hasValidFeatureSwitches(caseId: CaseId, enabled: unknown): boolean {
+  const appCase = APP_CASES[caseId]
+  const scenarios = Object.values(CONDITIONAL_SCENARIOS).filter(
+    (scenario) => scenario.caseId === caseId && appCase.rules[scenario.permissionId]?.conditionId === scenario.id,
+  )
+  const expectedSwitchIds = scenarios.flatMap((scenario) => scenario.featureSwitchId ? [scenario.featureSwitchId] : [])
+  if (!Array.isArray(enabled) || enabled.some((switchId) => typeof switchId !== 'string')) return false
+  if (new Set(enabled).size !== enabled.length) return false
+  return enabled.every((switchId) => expectedSwitchIds.includes(switchId))
+    && expectedSwitchIds.every((switchId) => enabled.includes(switchId))
+}
+
 function hasValidReasonTags(value: unknown): value is readonly ReasonTagId[] {
   const reasonTags: readonly ReasonTagId[] = ['function-connection', 'data-minimization', 'user-control', 'respect-others']
   return Array.isArray(value)
@@ -50,19 +62,24 @@ function hasValidReasonTags(value: unknown): value is readonly ReasonTagId[] {
  * The semantic completion contract shared by UI selectors, storage restore, and reports.
  * A completed flag alone is never sufficient to enter the completed-cases flow.
  */
-export function isCaseProgressComplete(caseId: CaseId, progress: CaseProgress | null | undefined): boolean {
+export function isCaseProgressReadyForCompletion(caseId: CaseId, progress: CaseProgress | null | undefined): boolean {
   const appCase = APP_CASES[caseId]
-  if (!appCase || !isRecord(progress) || progress.completed !== true) return false
+  if (!appCase || !isRecord(progress)) return false
   return (
     hasAllLearnerDecisions(progress.initialDecisions, appCase.requestedPermissions) &&
     hasAllLearnerDecisions(progress.revisedDecisions, appCase.requestedPermissions) &&
     progress.impactViewed === true &&
+    hasValidFeatureSwitches(caseId, progress.enabledFeatureSwitchIds) &&
     hasAllConditions(caseId, progress.acknowledgedConditionIds) &&
     hasValidReasonTags(progress.reasonTags) &&
     typeof progress.rationaleText === 'string' &&
     progress.rationaleText.trim().length > 0 &&
     (progress.controlAction === 'alternative' || progress.controlAction === 'revoke')
   )
+}
+
+export function isCaseProgressComplete(caseId: CaseId, progress: CaseProgress | null | undefined): boolean {
+  return progress?.completed === true && isCaseProgressReadyForCompletion(caseId, progress)
 }
 
 export function isCurrentCaseReadyForImpact(state: LabState): boolean {
@@ -72,8 +89,7 @@ export function isCurrentCaseReadyForImpact(state: LabState): boolean {
 
 export function isCurrentCaseReadyToComplete(state: LabState): boolean {
   if (!state.activeCaseId || !APP_CASES[state.activeCaseId] || state.stage !== 'revision-review') return false
-  const progress = state.caseProgress[state.activeCaseId]
-  return hasAllDecisions(progress.initialDecisions) && progress.impactViewed && hasAllConditions(state.activeCaseId, progress.acknowledgedConditionIds) && hasAllDecisions(progress.revisedDecisions) && progress.reasonTags.length >= 1 && progress.rationaleText.trim().length > 0 && progress.controlAction !== null
+  return isCaseProgressReadyForCompletion(state.activeCaseId, state.caseProgress[state.activeCaseId])
 }
 
 export function areAllCasesComplete(state: LabState): boolean {
@@ -85,5 +101,5 @@ export function isRevocationReadyToComplete(state: LabState): boolean {
 }
 
 export function getNextIncompleteCaseId(state: LabState): CaseId | null {
-  return CASE_ORDER.find((caseId) => !state.caseProgress[caseId]?.completed) ?? null
+  return CASE_ORDER.find((caseId) => !isCaseProgressComplete(caseId, state.caseProgress?.[caseId])) ?? null
 }

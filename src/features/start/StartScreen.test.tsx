@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createInitialLabState } from '../../app/labReducer'
+import { createStateWithCompletedCases } from '../../test/fixtures'
 import type { CaseId } from '../../domain/model'
 import { CASE_ORDER } from '../../content/cases'
 import StartScreen from './StartScreen'
@@ -31,7 +32,7 @@ describe('StartScreen', () => {
   it('selects a case, marks completed cases, and enables one primary action', async () => {
     const user = userEvent.setup()
     const p = props()
-    p.state = { ...p.state, caseProgress: { ...p.state.caseProgress, 'photo-scan': { ...p.state.caseProgress['photo-scan'], completed: true } } }
+    p.state = createStateWithCompletedCases(['photo-scan'])
     const view = render(<StartScreen {...p} />)
     expect(screen.getByText('완료')).toBeVisible()
     const start = screen.getByRole('button', { name: '기능 명세 보기' })

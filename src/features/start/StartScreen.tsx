@@ -8,6 +8,7 @@ import {
 import type { CaseId, LabState } from '../../domain/model'
 import PrimaryActionButton from '../../components/PrimaryActionButton'
 import CaseSelector from './CaseSelector'
+import { isCaseProgressComplete } from '../../app/labSelectors'
 
 export interface StartScreenProps {
   state: LabState
@@ -25,7 +26,7 @@ export default function StartScreen({
   onLoadSavedProgress,
 }: StartScreenProps): ReactElement {
   const completedCaseIds = Object.entries(state.caseProgress)
-    .filter(([, progress]) => progress.completed)
+    .filter(([caseId, progress]) => isCaseProgressComplete(caseId as CaseId, progress))
     .map(([caseId]) => caseId as CaseId)
 
   return (

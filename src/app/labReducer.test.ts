@@ -11,6 +11,7 @@ import { createDecision, createStateWithCompletedCases } from '../test/fixtures'
 import {
   areAllCasesComplete,
   getNextIncompleteCaseId,
+  isCaseProgressComplete,
   isCurrentCaseReadyForImpact,
   isCurrentCaseReadyToComplete,
   isRevocationReadyToComplete,
@@ -205,6 +206,61 @@ describe('labReducer', () => {
     expect(labReducer(incomplete, { type: 'OPEN_REVOCATION' })).toBe(incomplete)
     const wrongStage = { ...createStateWithCompletedCases(), stage: 'report' as const }
     expect(labReducer(wrongStage, { type: 'OPEN_REVOCATION' })).toBe(wrongStage)
+  })
+
+  it('blocks revocation and report transitions when completed flags hide incomplete evidence', () => {
+    const complete = createStateWithCompletedCases()
+    const forged: LabState = {
+      ...complete,
+      caseProgress: {
+        ...complete.caseProgress,
+        'photo-scan': { ...complete.caseProgress['photo-scan'], impactViewed: false, completed: true },
+      },
+    }
+    expect(isCaseProgressComplete('photo-scan', forged.caseProgress['photo-scan'])).toBe(false)
+    expect(getNextIncompleteCaseId(forged)).toBe('photo-scan')
+    expect(labReducer(forged, { type: 'OPEN_REVOCATION' })).toBe(forged)
+
+    const revocation = {
+      ...forged,
+      stage: 'revocation' as const,
+      revocationDecisions: Object.fromEntries(allPermissions.map((permissionId) => [permissionId, {
+        permissionId,
+        action: permissionId === 'camera' ? 'revoke-now' : 'keep-current-feature',
+      }])) as LabState['revocationDecisions'],
+    }
+    expect(labReducer(revocation, { type: 'COMPLETE_REVOCATION' })).toBe(revocation)
+    const reportReady = { ...revocation, revocationCompleted: true }
+    expect(labReducer(reportReady, { type: 'OPEN_REPORT' })).toBe(reportReady)
+  })
+
+  it('rejects class-map condition acknowledgement without its feature switch', () => {
+    const complete = createStateWithCompletedCases()
+    const forged: LabState = {
+      ...complete,
+      caseProgress: {
+        ...complete.caseProgress,
+        'class-map': {
+          ...complete.caseProgress['class-map'],
+          enabledFeatureSwitchIds: [],
+          acknowledgedConditionIds: ['map-current-position-opt-in'],
+        },
+      },
+    }
+    expect(isCaseProgressComplete('class-map', forged.caseProgress['class-map'])).toBe(false)
+    expect(areAllCasesComplete(forged)).toBe(false)
+
+    const extraSwitch: LabState = {
+      ...complete,
+      caseProgress: {
+        ...complete.caseProgress,
+        'class-map': {
+          ...complete.caseProgress['class-map'],
+          enabledFeatureSwitchIds: ['map-current-position', 'unexpected-switch'] as unknown as LabState['caseProgress']['class-map']['enabledFeatureSwitchIds'],
+        },
+      },
+    }
+    expect(isCaseProgressComplete('class-map', extraSwitch.caseProgress['class-map'])).toBe(false)
   })
 
   it('accepts only valid revocation decisions during the revocation stage', () => {
