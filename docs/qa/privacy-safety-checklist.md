@@ -13,7 +13,7 @@
 | 소스 정책 단위 | `node --test scripts/check-source-policy.test.mjs` | 통과, 19개 테스트. AST가 computed·optional·window/globalThis/self 래퍼, capability 획득·참조·전달, wrapper alias·static computed·destructuring·object alias, lexical shadow·hoisting·assignment·property/destructuring/array flow·catch/default parameter·중첩 provenance·local import와 analytics 초기화를 포함해 금지 참조를 검출하고 문자열·주석·regex·template plain text 및 로컬 객체 메서드는 제외하며 parse diagnostic도 clean으로 통과시키지 않음. recursive Map provenance, nested/default/array fail-closed와 비실행 이름 fixture도 포함 |
 | 실제 런타임 소스 | `npm run check:policy` | 통과, `0 forbidden runtime references` |
 | Node 정책 표준 게이트 | `npm run test:policy` | 통과, 19개 정책 테스트 |
-| 안전 문구·업데이트 이력 | `./node_modules/.bin/vitest run src/content/learningNotices.test.ts src/content/updateHistory.test.ts` | 통과, 2개 파일 12개 테스트 |
+| 안전 문구·업데이트 이력 | `./node_modules/.bin/vitest run src/content/learningNotices.test.ts src/content/updateHistory.test.ts` | 통과, 2개 파일 14개 테스트 |
 | 정적 분석 | `npm run lint` | 통과 |
 | ESLint 우회 fixture | `printf '%s\\n' 'window.gtag("event")' 'globalThis["gtag"]("event")' 'const g = window.gtag; g("event")' 'self.fetch(url)' 'const safe = "fetch("; void safe;' \| ./node_modules/.bin/eslint --stdin --stdin-filename src/policy-fixture.ts` | 의도한 exit 1, 점·계산 gtag 및 별칭·self fetch 우회를 검출하고 안전 문자열은 차단하지 않음. fixture는 저장소에 만들지 않음 |
 | ESLint 안전 fixture | `printf '%s\\n' 'void widget.init(); void widget.load(); void widget.fetch(); void widget.analytics; void view.navigator' 'const local = () => {}; const safeWidget = {fetch: local}; void safeWidget.fetch()' "import window from './mock'; void window.fetch" \| ./node_modules/.bin/eslint --stdin --stdin-filename src/safe-fixture.ts` | 통과, 로컬 `widget`/`view` 속성과 relative import wrapper는 오탐하지 않음. fixture는 저장소에 만들지 않음 |
