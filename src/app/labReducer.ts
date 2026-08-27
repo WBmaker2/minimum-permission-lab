@@ -12,7 +12,7 @@ import type {
   RevocationDecision,
 } from '../domain/model'
 import { RESTORED_STATUS_MESSAGE } from '../storage/progressStorage'
-import { areAllCasesComplete, isCaseProgressReadyForCompletion, isCaseProgressComplete } from './labSelectors'
+import { areAllCasesComplete, areCaseConditionsSatisfied, isCaseProgressReadyForCompletion, isCaseProgressComplete } from './labSelectors'
 
 export type LabAction =
   | { type: 'SELECT_CASE'; caseId: CaseId }
@@ -75,16 +75,6 @@ function hasValidRevocationDecisions(decisions: Partial<Record<PermissionId, Rev
     const decision = decisions[permissionId]
     return decision?.permissionId === permissionId && isRevocationAction(decision.action)
   })
-}
-
-function caseConditionIds(caseId: CaseId): ConditionalScenarioId[] {
-  return Object.values(CONDITIONAL_SCENARIOS)
-    .filter((scenario) => scenario.caseId === caseId)
-    .map((scenario) => scenario.id)
-}
-
-function hasAllConditions(caseId: CaseId, acknowledged: readonly ConditionalScenarioId[]): boolean {
-  return caseConditionIds(caseId).every((conditionId) => acknowledged.includes(conditionId))
 }
 
 function withCaseProgress(state: LabState, caseId: CaseId, progress: CaseProgress): LabState {
@@ -164,7 +154,7 @@ export function labReducer(state: LabState, action: LabAction): LabState {
       if (state.stage === 'initial-review' && hasAllDecisions(progress.initialDecisions)) {
         return withCaseProgress({ ...state, stage: 'impact' }, state.activeCaseId, { ...progress, impactViewed: true })
       }
-      if (state.stage === 'impact' && progress.controlAction !== null && hasAllConditions(state.activeCaseId, progress.acknowledgedConditionIds)) {
+      if (state.stage === 'impact' && progress.controlAction !== null && areCaseConditionsSatisfied(state.activeCaseId, progress)) {
         return { ...state, stage: 'revision-review' }
       }
       return state
@@ -179,7 +169,10 @@ export function labReducer(state: LabState, action: LabAction): LabState {
       const enabledFeatureSwitchIds = action.enabled
         ? [...progress.enabledFeatureSwitchIds, action.switchId]
         : progress.enabledFeatureSwitchIds.filter((switchId) => switchId !== action.switchId)
-      return withCaseProgress(state, action.caseId, { ...progress, enabledFeatureSwitchIds })
+      const acknowledgedConditionIds = action.enabled
+        ? progress.acknowledgedConditionIds
+        : progress.acknowledgedConditionIds.filter((conditionId) => !Object.values(CONDITIONAL_SCENARIOS).some((item) => item.caseId === action.caseId && item.featureSwitchId === action.switchId && item.id === conditionId))
+      return withCaseProgress(state, action.caseId, { ...progress, enabledFeatureSwitchIds, acknowledgedConditionIds })
     }
     case 'ACKNOWLEDGE_CONDITION': {
       if (state.stage !== 'impact' || state.activeCaseId !== action.caseId) return state

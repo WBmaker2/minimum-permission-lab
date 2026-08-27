@@ -10,6 +10,12 @@ export interface UpdateHistoryEntry {
 export const UPDATE_HISTORY: readonly UpdateHistoryEntry[] = [
   {
     date: '2026-08-27',
+    category: '개선',
+    summary: '조건부 기능 스위치 재확인 흐름 보강',
+    reason: '스위치를 끄면 조건 확인을 다시 하도록 하여 수정 권한안이 실제 비교 결과와 일치하게 함',
+  },
+  {
+    date: '2026-08-27',
     category: '개발',
     summary: '사례 완료 기록의 의미적 검증 보강',
     reason: '완료 표시만 위조한 저장 기록이 영향 확인과 조건 비교를 건너뛰지 못하게 함',

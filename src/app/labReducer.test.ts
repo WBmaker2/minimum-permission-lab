@@ -111,6 +111,26 @@ describe('labReducer', () => {
     expect(state.caseProgress['class-map'].enabledFeatureSwitchIds).toEqual(['map-current-position'])
   })
 
+  it('clears map condition acknowledgement when the switch is turned off and requires re-acknowledgement', () => {
+    let state = reduce(
+      createInitialLabState(),
+      { type: 'SELECT_CASE', caseId: 'class-map' },
+      { type: 'OPEN_SPECIFICATION' },
+      { type: 'OPEN_SPECIFICATION' },
+      ...decisions.map((decision) => ({ type: 'SET_INITIAL_DECISION' as const, caseId: 'class-map' as const, decision })),
+      { type: 'OPEN_IMPACT' },
+      { type: 'SET_FEATURE_SWITCH', caseId: 'class-map', switchId: 'map-current-position', enabled: true },
+      { type: 'ACKNOWLEDGE_CONDITION', caseId: 'class-map', conditionId: 'map-current-position-opt-in' },
+      { type: 'SET_CONTROL_ACTION', caseId: 'class-map', action: 'alternative' },
+    )
+    state = labReducer(state, { type: 'SET_FEATURE_SWITCH', caseId: 'class-map', switchId: 'map-current-position', enabled: false })
+    expect(state.caseProgress['class-map'].acknowledgedConditionIds).toEqual([])
+    expect(labReducer(state, { type: 'OPEN_IMPACT' })).toBe(state)
+    state = labReducer(state, { type: 'SET_FEATURE_SWITCH', caseId: 'class-map', switchId: 'map-current-position', enabled: true })
+    state = labReducer(state, { type: 'ACKNOWLEDGE_CONDITION', caseId: 'class-map', conditionId: 'map-current-position-opt-in' })
+    expect(labReducer(state, { type: 'OPEN_IMPACT' }).stage).toBe('revision-review')
+  })
+
   it('guards impact controls by active case and stage while preserving progress identity on duplicates', () => {
     const state = toImpact()
     expect(labReducer(state, { type: 'SET_CONTROL_ACTION', caseId: 'photo-scan', action: 'alternative' })).toBe(state)

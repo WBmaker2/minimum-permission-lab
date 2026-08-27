@@ -5,6 +5,7 @@ import PrimaryActionButton from '../../components/PrimaryActionButton'
 import StatusLiveRegion from '../../components/StatusLiveRegion'
 import { CONDITIONAL_SCENARIOS, CONDITIONAL_SCENARIO_ORDER } from '../../content/conditionalScenarios'
 import { buildFunctionImpacts } from '../../domain/buildFunctionImpacts'
+import { areCaseConditionsSatisfied } from '../../app/labSelectors'
 import type {
   AppCase,
   CaseId,
@@ -41,8 +42,7 @@ export default function ImpactScreen({
   const scenarios = CONDITIONAL_SCENARIO_ORDER
     .map((scenarioId) => CONDITIONAL_SCENARIOS[scenarioId])
     .filter((scenario) => scenario.caseId === appCase.id)
-  const allScenariosAcknowledged = scenarios.every((scenario) => progress.acknowledgedConditionIds.includes(scenario.id))
-  const ready = progress.controlAction !== null && allScenariosAcknowledged
+  const ready = progress.controlAction !== null && areCaseConditionsSatisfied(appCase.id, progress)
 
   const handleSwitchChange = (caseId: CaseId, switchId: FeatureSwitchId, enabled: boolean) => {
     onFeatureSwitchChange(caseId, switchId, enabled)

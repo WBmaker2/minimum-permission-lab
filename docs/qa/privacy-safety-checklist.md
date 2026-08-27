@@ -20,8 +20,8 @@
 | ESLint scope fixture | `printf '%s\\n' 'function safe(fetch){ void fetch(url); }' 'const fetch=()=>undefined; void fetch()' 'function safe(navigator){ void navigator.permissions; }' 'function safe(WebSocket){ void new WebSocket(url); }' 'void safe;' \| ./node_modules/.bin/eslint --stdin --stdin-filename src/safe-shadow-fixture.ts` | 통과, 매개변수·로컬 선언으로 shadow된 fetch/navigator/WebSocket을 오탐하지 않음. fixture는 저장소에 만들지 않음 |
 | ESLint type-only fixture | `echo "import type * as window from './mock'; window.fetch(url)" \| ./node_modules/.bin/eslint --stdin --stdin-filename src/type-only.ts` | 의도한 exit 1, type-only import가 실행 전역 capability를 가리지 못하는 우회를 차단함. 일반 value import shadow는 별도 안전 fixture로 통과. fixture는 저장소에 만들지 않음 |
 | ESLint 정책 자동 fixture | `node --test scripts/check-source-policy.test.mjs` 내 ESLint API 호출 | 통과, runtime `fetch`·`window.fetch`·type-only fetch는 nonzero, type-position·value import·local wrapper shadow·object method는 zero를 자동 검증 |
-| 전체 unit | `npm run test:run` | 통과, 정책 19개와 Vitest 20개 파일 204개 테스트 |
-| 전체 coverage | `npm run test:coverage` | 통과, Statements 89.26%, Branches 86.74%, Functions 90%, Lines 95.05% |
+| 전체 unit | `npm run test:run` | 통과, 정책 19개와 Vitest 20개 파일 205개 테스트 |
+| 전체 coverage | `npm run test:coverage` | 통과, Statements 89.25%, Branches 87.07%, Functions 90.27%, Lines 95.19% |
 | production build | `npm run build` | 통과, TypeScript 검사와 Vite 정적 산출물 생성 |
 | mobile 브라우저 준비 | `npx playwright install webkit` | 성공, WebKit 26.5 다운로드 완료. 브라우저 산출물은 프로젝트 커밋에 포함하지 않음 |
 | privacy E2E · desktop-chromium | `npm run test:e2e -- e2e/privacy-safety.spec.ts --project=desktop-chromium --workers=1` (전용 `127.0.0.1:44173`) | 통과, 2개 테스트(별명 저장 경계·보고서 경계) |
@@ -36,6 +36,7 @@
 - `햇살 탐험대`는 `FictionalAliasPractice`의 컴포넌트 로컬 미리보기에서만 보이며, 저장된 모든 키·값과 progress JSON에는 나타나지 않았습니다. progress JSON에는 `alias` 필드도 없습니다.
 - 저장 JSON의 `payload.state`는 `stage`, `activeCaseId`, `caseProgress`, `revocationCompleted`, `revocationDecisions`, `saveOnDevice`의 정확한 키 집합이며, 각 `CaseProgress`도 설계된 9개 키만 가집니다. 저장 전용 JSON에는 런타임 `statusMessage`가 없습니다.
 - `isCaseProgressComplete`를 저장 복원·사례 전체 완료·보고서 생성이 함께 사용하며, `completed:true`만 위조한 기록, 영향 확인·조건 카드 누락, class-map 조건의 스위치 누락·unknown 스위치를 의미적 완료로 통과시키지 않습니다. `completed:false`인 일반 학습 중 기록은 계속 복원됩니다.
+- class-map 조건 스위치를 끄면 연결된 조건 acknowledgement를 지우고 수정 권한안 버튼을 잠가, 다시 켠 뒤 조건 비교를 재확인해야 진행하도록 reducer·ImpactScreen focused 회귀 테스트로 확인했습니다.
 - 오염된 런타임 상태에 `alias`를 최상위와 모든 사례 진행 상태에 추가해도 `buildReport`가 만든 `LabReport`와 모든 사례 결과의 정확한 키 집합에는 alias가 전달되지 않았습니다.
 - 런타임 DOM에 `input[type=file]`이 없고, 별명 입력은 `autocomplete="off"`이며 이름·전화번호·주소용 autocomplete 의미를 사용하지 않습니다.
 - request listener는 초기 navigation 전에 설치되어 별명 미리보기 확인까지 page 수명 동안 유지되었고, 허용 origin 외 요청은 0건이었습니다.

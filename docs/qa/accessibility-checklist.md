@@ -25,7 +25,7 @@
 
 ## 결과 기록
 
-- 2026-08-27 자동화 결과: 정책 19개와 Vitest 20개 파일 204 passed, `npm run test:coverage` Statements 89.26% / Branches 86.74% / Functions 90% / Lines 95.05%, `npm run lint` passed, `npm run build` passed.
+- 2026-08-27 자동화 결과: 정책 19개와 Vitest 20개 파일 205 passed, `npm run test:coverage` Statements 89.25% / Branches 87.07% / Functions 90.27% / Lines 95.19%, `npm run lint` passed, `npm run build` passed.
 - Playwright Chromium 직렬 실행: `npm run test:e2e -- --workers=1` 15 passed + 1 intentional skip. `desktop-chromium`과 `mobile-375`(375×812, reduced-motion emulate)을 모두 포함했습니다.
 - axe는 start, specification, initial-review, impact, revision-review, revocation, report 단계에서 serious/critical 위반 0건이었습니다. 키보드 전용 helper로 네 사례, 조건 비교 2건, 철회, 업데이트 내역 Escape 복귀, 보고서를 완료했습니다.
 - 모바일 검증은 document 수평 overflow 0, primary action 가림 없음, 대상 44px 이상, 표의 contained horizontal scroll을 확인했습니다. reduced-motion은 animated element 0초, 고정 3px outline, 보이는 단계 번호를 확인했습니다.

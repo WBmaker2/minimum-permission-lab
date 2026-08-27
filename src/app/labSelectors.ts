@@ -50,6 +50,12 @@ function hasValidFeatureSwitches(caseId: CaseId, enabled: unknown): boolean {
     && expectedSwitchIds.every((switchId) => enabled.includes(switchId))
 }
 
+export function areCaseConditionsSatisfied(caseId: CaseId, progress: CaseProgress | null | undefined): boolean {
+  if (!progress || !isRecord(progress)) return false
+  return hasValidFeatureSwitches(caseId, progress.enabledFeatureSwitchIds)
+    && hasAllConditions(caseId, progress.acknowledgedConditionIds)
+}
+
 function hasValidReasonTags(value: unknown): value is readonly ReasonTagId[] {
   const reasonTags: readonly ReasonTagId[] = ['function-connection', 'data-minimization', 'user-control', 'respect-others']
   return Array.isArray(value)
@@ -69,8 +75,7 @@ export function isCaseProgressReadyForCompletion(caseId: CaseId, progress: CaseP
     hasAllLearnerDecisions(progress.initialDecisions, appCase.requestedPermissions) &&
     hasAllLearnerDecisions(progress.revisedDecisions, appCase.requestedPermissions) &&
     progress.impactViewed === true &&
-    hasValidFeatureSwitches(caseId, progress.enabledFeatureSwitchIds) &&
-    hasAllConditions(caseId, progress.acknowledgedConditionIds) &&
+    areCaseConditionsSatisfied(caseId, progress) &&
     hasValidReasonTags(progress.reasonTags) &&
     typeof progress.rationaleText === 'string' &&
     progress.rationaleText.trim().length > 0 &&
