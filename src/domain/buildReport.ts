@@ -1,4 +1,5 @@
 import { CASE_ORDER } from '../content/cases'
+import { isCaseProgressComplete } from '../app/labSelectors'
 import type {
   LabReport,
   LabState,
@@ -80,7 +81,7 @@ function readRevocationDecisions(state: LabState): readonly RevocationDecision[]
 
 function buildCaseResult(state: LabState, caseId: (typeof CASE_ORDER)[number]): ReportCaseResult {
   const progress = state.caseProgress?.[caseId]
-  if (!progress || progress.completed !== true) throw reportError(caseId, '사례 완료 기록이 필요합니다.')
+  if (!isCaseProgressComplete(caseId, progress)) throw reportError(caseId, '의미 있는 사례 완료 기록이 필요합니다.')
   const initial = readDecisions(progress.initialDecisions, caseId, '최초')
   const revised = readDecisions(progress.revisedDecisions, caseId, '수정')
   if (typeof progress.rationaleText !== 'string' || progress.rationaleText.trim().length === 0) throw reportError(caseId, '수정 이유 기록이 없습니다.')

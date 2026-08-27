@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { buildReport } from '../../domain/buildReport'
 import { createInitialLabState } from '../../app/labReducer'
+import { CONDITIONAL_SCENARIOS } from '../../content/conditionalScenarios'
 import { LabProvider } from '../../app/LabProvider'
 import { LabApplication } from '../../app/App'
 import { PROGRESS_STORAGE_KEY } from '../../storage/progressStorage'
@@ -29,6 +30,13 @@ function reportState(saveOnDevice = false): LabState {
     },
     caseProgress: Object.fromEntries(Object.entries(base.caseProgress).map(([caseId, progress], index) => [caseId, {
       ...progress, initialDecisions: decisions, revisedDecisions: decisions, reasonTags: ['data-minimization'], rationaleText: `${caseId} 근거`, controlAction: index % 2 === 0 ? 'alternative' : 'revoke', completed: true,
+      enabledFeatureSwitchIds: Object.values(CONDITIONAL_SCENARIOS)
+        .filter((scenario) => scenario.caseId === caseId && scenario.featureSwitchId)
+        .map((scenario) => scenario.featureSwitchId!),
+      acknowledgedConditionIds: Object.values(CONDITIONAL_SCENARIOS)
+        .filter((scenario) => scenario.caseId === caseId)
+        .map((scenario) => scenario.id),
+      impactViewed: true,
     }])) as unknown as LabState['caseProgress'],
   }
   return state

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { CASE_ORDER } from '../content/cases'
+import { CONDITIONAL_SCENARIOS } from '../content/conditionalScenarios'
 import { createInitialLabState } from '../app/labReducer'
 import { buildReport, buildRubricEvidence } from './buildReport'
 import type { LabState, PermissionId, ReasonTagId } from './model'
@@ -26,6 +27,13 @@ function validState(): LabState {
       revisedDecisions: { ...decisions, camera: { permissionId: 'camera', choice: 'allow-current-feature' } },
       reasonTags: ['function-connection', 'user-control'],
       rationaleText: `${caseId}에서 필요한 권한만 골랐습니다.`,
+      enabledFeatureSwitchIds: Object.values(CONDITIONAL_SCENARIOS)
+        .filter((scenario) => scenario.caseId === caseId && scenario.featureSwitchId)
+        .map((scenario) => scenario.featureSwitchId!),
+      acknowledgedConditionIds: Object.values(CONDITIONAL_SCENARIOS)
+        .filter((scenario) => scenario.caseId === caseId)
+        .map((scenario) => scenario.id),
+      impactViewed: true,
       controlAction: 'alternative',
       completed: true,
     }])) as unknown as LabState['caseProgress'],
@@ -125,5 +133,24 @@ describe('buildReport', () => {
     } })],
   ])('fails closed for %s', (_label, mutate) => {
     expect(() => buildReport(mutate(validState()) as LabState)).toThrow(/보고서/)
+  })
+
+  it('fails closed when every case claims completion without impact review or condition acknowledgements', () => {
+    const state = validState()
+    const forged: LabState = {
+      ...state,
+      caseProgress: Object.fromEntries(CASE_ORDER.map((caseId) => [caseId, {
+        ...state.caseProgress[caseId],
+        impactViewed: false,
+        acknowledgedConditionIds: [],
+        completed: true,
+    }])) as unknown as LabState['caseProgress'],
+    }
+
+    expect(() => buildReport(forged)).toThrow(/보고서/)
+  })
+
+  it('builds a report for a semantic completed state with conditional acknowledgements', () => {
+    expect(buildReport(validState()).cases).toHaveLength(CASE_ORDER.length)
   })
 })

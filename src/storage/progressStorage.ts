@@ -1,4 +1,5 @@
 import { CASE_ORDER } from '../content/cases'
+import { isCaseProgressComplete } from '../app/labSelectors'
 import type {
   CaseId,
   CaseProgress,
@@ -110,7 +111,7 @@ function validateCaseProgress(value: unknown, caseId: CaseId): CaseProgress | nu
   if (caseId === 'class-map' && acknowledgedConditionIds.some((id) => id !== 'map-current-position-opt-in')) return null
   if (caseId !== 'voice-reading' && caseId !== 'class-map' && acknowledgedConditionIds.length > 0) return null
   if (caseId === 'class-map' && enabledFeatureSwitchIds.length === 0 && acknowledgedConditionIds.length > 0) return null
-  return {
+  const progress: CaseProgress = {
     initialDecisions: copyDecisionRecord(initialDecisions),
     revisedDecisions: copyDecisionRecord(revisedDecisions),
     reasonTags: [...reasonTags],
@@ -121,6 +122,8 @@ function validateCaseProgress(value: unknown, caseId: CaseId): CaseProgress | nu
     controlAction,
     completed: value.completed,
   }
+  if (progress.completed && !isCaseProgressComplete(caseId, progress)) return null
+  return progress
 }
 
 function copyDecisionRecord(value: Partial<Record<PermissionId, PermissionDecision>>): Partial<Record<PermissionId, PermissionDecision>> {

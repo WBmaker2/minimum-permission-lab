@@ -10,6 +10,12 @@ export interface UpdateHistoryEntry {
 export const UPDATE_HISTORY: readonly UpdateHistoryEntry[] = [
   {
     date: '2026-08-27',
+    category: '개발',
+    summary: '사례 완료 기록의 의미적 검증 보강',
+    reason: '완료 표시만 위조한 저장 기록이 영향 확인과 조건 비교를 건너뛰지 못하게 함',
+  },
+  {
+    date: '2026-08-27',
     category: '개선',
     summary: '네 사례 완료 요약과 판단 변화 증거 표시',
     reason: '학생이 최초안과 수정안의 차이를 한눈에 확인하도록 함',

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { APP_CASES, CASE_ORDER } from '../content/cases'
 import { createInitialLabState } from '../app/labReducer'
+import { createStateWithCompletedCases } from '../test/fixtures'
 import type { LabState, PermissionId } from '../domain/model'
 import {
   PROGRESS_STORAGE_KEY,
@@ -56,7 +57,7 @@ function progressedState(): LabState {
 }
 
 describe('progressStorage', () => {
-  it('round trips a v1 snapshot as an equal but deeply independent state', () => {
+  it('allows an incomplete learning snapshot with completed false and keeps it independent', () => {
     const storage = memoryStorage()
     const input = progressedState()
     saveProgress(storage, input)
@@ -69,6 +70,7 @@ describe('progressStorage', () => {
     expect(loaded?.caseProgress['voice-reading'].reasonTags).not.toBe(input.caseProgress['voice-reading'].reasonTags)
     expect(loaded?.revocationDecisions).not.toBe(input.revocationDecisions)
     expect(loaded?.statusMessage).not.toBe(input.statusMessage)
+    expect(loaded?.caseProgress['voice-reading'].completed).toBe(false)
   })
 
   it('serializes only the allowlisted learning state and no personal metadata', () => {
@@ -156,5 +158,22 @@ describe('progressStorage', () => {
     saveProgress(storage, state)
     expect(loadSavedProgress(storage)?.caseProgress['voice-reading'].initialDecisions).toEqual(state.caseProgress['voice-reading'].initialDecisions)
     expect(APP_CASES['voice-reading'].requestedPermissions).toHaveLength(4)
+  })
+
+  it('rejects a forged completed snapshot without impact review or required condition acknowledgements', () => {
+    const source = createStateWithCompletedCases()
+    const forged: LabState = {
+      ...source,
+      caseProgress: Object.fromEntries(CASE_ORDER.map((caseId) => [caseId, {
+        ...source.caseProgress[caseId],
+        impactViewed: false,
+        acknowledgedConditionIds: [],
+        completed: true,
+    }])) as unknown as LabState['caseProgress'],
+    }
+    const storage = memoryStorage()
+    saveProgress(storage, forged)
+
+    expect(loadSavedProgress(storage)).toBeNull()
   })
 })
