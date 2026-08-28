@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { CASE_ORDER } from '../src/content/cases'
 import { PROGRESS_STORAGE_KEY } from '../src/storage/progressStorage'
+import { recordPrimaryActionRects } from './helpers/keyboardFlow'
 
 const CASE_TITLES: Readonly<Record<(typeof CASE_ORDER)[number], string>> = {
   'photo-scan': '사진 스캔 과제함',
@@ -105,6 +106,21 @@ test('completes all four cases and keeps the default branch clean after reload',
   await expect(page.evaluate(() => Object.keys(window.localStorage))).resolves.toEqual([])
 
   await completeAllCases(page)
+})
+
+test('keeps a normal-motion primary action rectangle stable while pulsing', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: CASE_TITLES['photo-scan'], exact: true }).click()
+  const primaryAction = page.getByRole('button', { name: '기능 명세 보기', exact: true })
+  const rects = await recordPrimaryActionRects(primaryAction)
+  const first = rects[0]
+  expect(first).toBeDefined()
+  for (const rect of rects.slice(1)) {
+    expect(Math.abs(rect.x - first.x)).toBeLessThanOrEqual(0.5)
+    expect(Math.abs(rect.y - first.y)).toBeLessThanOrEqual(0.5)
+    expect(Math.abs(rect.width - first.width)).toBeLessThanOrEqual(0.5)
+    expect(Math.abs(rect.height - first.height)).toBeLessThanOrEqual(0.5)
+  }
 })
 
 test('recovers an isolated opt-in record, then clears it before a clean reload', async ({ page }) => {

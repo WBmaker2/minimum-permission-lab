@@ -78,4 +78,18 @@ test.describe('375px reduced-motion learner flow', () => {
     expect(styles.borderWidth).toBe('3px')
     expect(styles.stepVisibility).toBe('visible')
   })
+
+  test('keeps document scroll width within client width at 320px and 375px', async ({ page }) => {
+    for (const [width, height] of [[320, 568], [375, 812]] as const) {
+      await page.setViewportSize({ width, height })
+      await page.goto('/')
+      await completeAllCasesWithKeyboard(page)
+      const metrics = await page.evaluate(() => ({
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      }))
+      expect(metrics.clientWidth).toBe(width)
+      expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth)
+    }
+  })
 })

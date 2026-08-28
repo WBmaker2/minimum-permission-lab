@@ -214,7 +214,6 @@ th {
 .gi-pulse {
   position: relative;
   isolation: isolate;
-  animation: gi-pulse 2.4s ease-in-out infinite;
 }
 
 .gi-pulse::after {
@@ -238,10 +237,10 @@ th {
 @keyframes gi-pulse {
   0%,
   100% {
-    transform: translateY(0);
+    opacity: 1;
   }
   50% {
-    transform: translateY(-2px);
+    opacity: 1;
   }
 }
 
@@ -249,10 +248,12 @@ th {
   0%,
   100% {
     opacity: 0.35;
+    box-shadow: 0 0 0 0 rgb(216 107 0 / 0%);
     transform: scale(0.98);
   }
   50% {
     opacity: 0.9;
+    box-shadow: 0 0 0 0.3rem rgb(216 107 0 / 18%);
     transform: scale(1.03);
   }
 }

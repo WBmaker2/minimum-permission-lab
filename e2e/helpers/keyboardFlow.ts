@@ -11,6 +11,33 @@ const CHOICE_LABEL = '허용하지 않음'
 type StageHook = (stage: 'revocation' | 'report') => Promise<void>
 type PrimaryActionHook = (button: Locator) => Promise<void>
 
+export interface PrimaryActionRect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/** Samples the pulsing CTA before and during normal motion without activating it. */
+export async function recordPrimaryActionRects(button: Locator): Promise<PrimaryActionRect[]> {
+  await expect(button).toBeVisible()
+  return button.evaluate((element) => new Promise<PrimaryActionRect[]>((resolve) => {
+    const samples: PrimaryActionRect[] = []
+    let sampleCount = 0
+    const sample = () => {
+      const rect = element.getBoundingClientRect()
+      samples.push({ x: rect.x, y: rect.y, width: rect.width, height: rect.height })
+      sampleCount += 1
+      if (sampleCount >= 7) {
+        resolve(samples)
+        return
+      }
+      window.setTimeout(sample, 100)
+    }
+    sample()
+  }))
+}
+
 /** Complete one case with keyboard activation only (no pointer APIs). */
 export async function completeCaseWithKeyboard(page: Page, caseId: CaseId, onPrimaryAction?: PrimaryActionHook): Promise<void> {
   await expect(page.getByRole('heading', { name: '학습 시작' })).toBeVisible()

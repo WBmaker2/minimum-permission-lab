@@ -105,6 +105,14 @@ describe('learning visual system styles', () => {
     expect(reducedMotion).toMatch(/opacity\s*:\s*1/)
   })
 
+  it('keeps normal gi-pulse geometry fixed by animating the aura only', () => {
+    const css = readStyle('components.css')
+    const pulseKeyframes = css.match(/@keyframes gi-pulse\s*\{([\s\S]*?)\n\}\s*@keyframes gi-pulse-aura/)
+    expect(pulseKeyframes?.[1]).toBeTruthy()
+    expect(pulseKeyframes?.[1]).not.toMatch(/\btransform\s*:/)
+    expect(css).toMatch(/\.gi-pulse::after\s*\{[\s\S]*?animation:\s*gi-pulse-aura/)
+  })
+
   it('keeps report content and hides only controls when printing', () => {
     const css = readStyle('print.css')
     expect(css).toContain('@media print')
