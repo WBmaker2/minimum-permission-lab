@@ -12,7 +12,7 @@
 - 로컬 검증 서버: `http://127.0.0.1:44173` (`strictPort`, `reuseExistingServer: false`)
 - 공개 학습자 URL: [https://wbmaker2.github.io/minimum-permission-lab/](https://wbmaker2.github.io/minimum-permission-lab/)
 - HVC 검토용 저장소: [https://github.com/WBmaker2/minimum-permission-lab](https://github.com/WBmaker2/minimum-permission-lab)
-- 공개 URL는 기존 Pages 배포 스냅샷을 가리키며, 이번 로컬 개선 변경은 이 기록 작성 시점에 푸시·배포하지 않았습니다.
+- 기록 작성 시점에는 로컬 개선 상태였고, 이후 `3245c8a`를 `origin/main`에 푸시해 Pages workflow `33146277282`를 성공시켰습니다. 현재 공개 URL은 해당 개선 커밋을 포함한 Pages 배포 결과를 제공합니다.
 - 입력 데이터: 가상 별명과 학습용 근거 문장만 사용했습니다. 실제 이름·전화번호·주소는 입력하지 않았습니다.
 
 ## 발견 사항별 구현 결과
@@ -47,6 +47,13 @@
 | 모바일 폭 | 위 Playwright suite의 320px·375px viewport 검사 | `scrollWidth <= clientWidth`, 비교 카드와 핵심 버튼 검사 통과 |
 | 개인정보·네트워크 | privacy E2E | 초기 `localStorage` 빈 배열, 전용 저장 키만 사용, 별명 미저장, 외부 요청 0건 |
 
+## 공개 배포 확인
+
+- GitHub Actions: [Build and deploy to GitHub Pages · 33146277282](https://github.com/WBmaker2/minimum-permission-lab/actions/runs/33146277282) — lint·unit/policy·production build·Pages artifact·Deploy to Pages 모두 성공했습니다.
+- 공개 HTML 응답: HTTP 200, 제목 `앱 권한 최소허용 연구소`, 현재 번들 자산 200.
+- 공개 375px Chromium 확인: `h1`과 `학습 시작`이 보이고, `localStorage` 키 `[]`, `document.documentElement.scrollWidth === clientWidth === 375`, 업데이트 내역에 `모바일·키보드·보조기술 대응 구조와 저장 경계 보강`이 표시됩니다.
+- 공개 learner path 확인: `사진 스캔 과제함` → `기능 명세 보기` 이동 후 `h2[data-stage-heading]`가 포커스를 받고, 콘솔 오류와 외부 origin 요청이 0건입니다.
+
 ## 브라우저 환경 한계
 
 `mobile-375` 프로젝트를 별도로 실행한 시도는 제품 assertion 전에 `/Users/kimhongnyeon/Library/Caches/ms-playwright/webkit-2336/pw_run.sh`가 없어 9개가 브라우저 시작 실패했고, 저장소 경계에 관한 브라우저 없는 테스트 1개만 통과했습니다. 따라서 이 시도는 모바일 제품 통과로 집계하지 않았습니다. 데스크톱 Chromium에서 viewport를 320px·375px로 설정한 레이아웃·키보드 검사는 별도 통과 증거로 유지합니다.
@@ -61,4 +68,4 @@
 
 1. 교사 동반 초등 학습자 세션에서 첫 행동 이해, 막힌 버튼, 긴 문장, 보고서 카드 이해를 관찰합니다.
 2. 승인된 실제 기기에서 VoiceOver/TalkBack을 별도 수동 검증으로 기록합니다.
-3. 릴리스 승인이 있으면 GitHub push와 Pages workflow를 실행하고, 위 공개 URL에서 배포된 learner path를 다시 확인합니다.
+3. 다음 릴리스 변경이 생기면 GitHub push와 Pages workflow를 실행하고, 위 공개 URL에서 배포된 learner path를 다시 확인합니다.
