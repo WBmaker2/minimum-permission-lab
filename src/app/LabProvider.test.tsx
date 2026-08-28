@@ -46,6 +46,17 @@ describe('LabProvider explicit local saving', () => {
     act(() => result.current.setSaveOnDevice(false))
     expect(storage.removeItem).toHaveBeenCalledTimes(1)
     expect(storage.removeItem).toHaveBeenCalledWith(PROGRESS_STORAGE_KEY)
+    expect(result.current.state.statusMessage).toBe('이 기기에 저장하지 않음')
+  })
+
+  it('clears only the dedicated key and reports the explicit delete status', () => {
+    const storage = createSpyStorage('saved')
+    const { result } = renderHook(() => useLab(), { wrapper: wrapper(storage) })
+    act(() => result.current.clearSavedProgressOnRequest())
+    expect(storage.removeItem).toHaveBeenCalledTimes(1)
+    expect(storage.removeItem).toHaveBeenCalledWith(PROGRESS_STORAGE_KEY)
+    expect(result.current.state.saveOnDevice).toBe(false)
+    expect(result.current.state.statusMessage).toBe('저장 기록을 지웠습니다.')
   })
 
   it('writes exactly once on opt-in and once for each subsequent changed state', () => {
@@ -90,6 +101,16 @@ describe('LabProvider explicit local saving', () => {
     expect(loadedStorage.getItem).toHaveBeenCalledWith(PROGRESS_STORAGE_KEY)
     expect(loadedStorage.setItem).not.toHaveBeenCalled()
     expect(result.current.state.activeCaseId).toBe('photo-scan')
+    expect(result.current.state.statusMessage).toBe('저장된 학습 기록을 불러왔습니다.')
+  })
+
+  it('reports the empty-storage status without replacing the current state', () => {
+    const storage = createSpyStorage()
+    const { result } = renderHook(() => useLab(), { wrapper: wrapper(storage) })
+    const before = result.current.state
+    act(() => result.current.loadSavedProgressOnRequest())
+    expect(result.current.state.activeCaseId).toBe(before.activeCaseId)
+    expect(result.current.state.statusMessage).toBe('저장된 학습 기록이 없습니다.')
   })
 
   it('ignores invalid saved data without replacing the current state', () => {
@@ -98,7 +119,8 @@ describe('LabProvider explicit local saving', () => {
     const before = result.current.state
     act(() => result.current.loadSavedProgressOnRequest())
     expect(storage.getItem).toHaveBeenCalledTimes(1)
-    expect(result.current.state).toBe(before)
+    expect(result.current.state).not.toBe(before)
+    expect(result.current.state.statusMessage).toBe('저장된 학습 기록이 없습니다.')
     expect(storage.setItem).not.toHaveBeenCalled()
   })
 

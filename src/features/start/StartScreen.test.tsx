@@ -17,6 +17,7 @@ describe('StartScreen', () => {
     onOpenSpecification: vi.fn(),
     onSaveOnDeviceChange: vi.fn(),
     onLoadSavedProgress: vi.fn(),
+    onClearSavedProgress: vi.fn(),
   })
 
   it('shows goal, boundaries, teacher guidance and all four cases', () => {
@@ -58,9 +59,30 @@ describe('StartScreen', () => {
     expect(p.onSaveOnDeviceChange).toHaveBeenCalledWith(true)
     await user.click(screen.getByRole('button', { name: '이 기기에 저장한 기록 불러오기' }))
     expect(p.onLoadSavedProgress).toHaveBeenCalledOnce()
+    await user.click(screen.getByRole('button', { name: '저장 기록 지우기' }))
+    expect(p.onClearSavedProgress).toHaveBeenCalledOnce()
     await user.click(screen.getByRole('button', { name: /사진 스캔 과제함/ }))
     view.rerender(<StartScreen {...p} state={{ ...p.state, activeCaseId: 'photo-scan' }} />)
     expect(screen.getByRole('button', { name: /사진 스캔 과제함/ })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByText(/공용 기기에서는 저장하지 않고/)).toBeVisible()
+  })
+
+  it('shows the exact opt-in copy and status message for each storage state', () => {
+    const p = props()
+    const view = render(<StartScreen {...p} />)
+    expect(screen.getByText('공용 기기에서는 저장하지 않고 사용 후 기록을 삭제하세요.')).toBeVisible()
+
+    view.rerender(
+      <StartScreen
+        {...p}
+        state={{
+          ...p.state,
+          saveOnDevice: true,
+          statusMessage: '권한 선택과 근거 문장만 이 기기에 저장 중입니다. 별명과 실제 개인정보는 저장하지 않습니다.',
+        }}
+      />,
+    )
+    expect(screen.getAllByText('권한 선택과 근거 문장만 이 기기에 저장 중입니다. 별명과 실제 개인정보는 저장하지 않습니다.')[0]).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent('권한 선택과 근거 문장만 이 기기에 저장 중입니다. 별명과 실제 개인정보는 저장하지 않습니다.')
   })
 })

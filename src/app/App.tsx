@@ -22,7 +22,7 @@ export default function App(): ReactElement {
 }
 
 export function LabApplication(): ReactElement {
-  const { state, dispatch, setSaveOnDevice, loadSavedProgressOnRequest } = useLab()
+  const { state, dispatch, setSaveOnDevice, loadSavedProgressOnRequest, clearSavedProgressOnRequest } = useLab()
   const [isUpdateHistoryOpen, setIsUpdateHistoryOpen] = useState(false)
   const updateHistoryTriggerRef = useRef<HTMLButtonElement>(null)
   const openUpdateHistory = useCallback(() => setIsUpdateHistoryOpen(true), [])
@@ -35,6 +35,7 @@ export function LabApplication(): ReactElement {
     onOpenSpecification: () => dispatch({ type: 'OPEN_SPECIFICATION' }),
     onSaveOnDeviceChange: setSaveOnDevice,
     onLoadSavedProgress: loadSavedProgressOnRequest,
+    onClearSavedProgress: clearSavedProgressOnRequest,
     onBeginReview: () => dispatch({ type: 'OPEN_SPECIFICATION' }),
     onInitialDecision: (decision) => state.activeCaseId && dispatch({ type: 'SET_INITIAL_DECISION', caseId: state.activeCaseId, decision }),
     onOpenImpact: () => dispatch({ type: 'OPEN_IMPACT' }),
@@ -71,6 +72,7 @@ interface StageCallbacks {
   onOpenSpecification: () => void
   onSaveOnDeviceChange: (enabled: boolean) => void
   onLoadSavedProgress: () => void
+  onClearSavedProgress: () => void
   onBeginReview: () => void
   onInitialDecision: (decision: PermissionDecision) => void
   onOpenImpact: () => void

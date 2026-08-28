@@ -80,6 +80,9 @@ describe('PermissionReviewScreen', () => {
     const { onDecision } = renderReview()
     const action = screen.getByRole('button', { name: '선택 검토' })
     expect(action).toBeDisabled()
+    expect(screen.getByText('권한 0/4 선택')).toBeVisible()
+    expect(action).toHaveAttribute('aria-describedby')
+    expect(document.getElementById(action.getAttribute('aria-describedby')!)).toBeVisible()
     expect(action).not.toHaveClass('gi-pulse')
     for (const radio of screen.getAllByRole('radio', { name: '허용하지 않음' })) await user.click(radio)
     expect(onDecision).toHaveBeenCalledTimes(4)
@@ -97,6 +100,7 @@ describe('PermissionReviewScreen', () => {
       progress: progress({ reasonTags: [], rationaleText: '' }),
     })
     expect(screen.queryByRole('textbox', { name: '내 판단 근거' })).toBeInTheDocument()
+    expect(screen.getByText('수정 선택 0/4')).toBeVisible()
     expect(screen.getByRole('button', { name: '선택 검토' })).toBeDisabled()
     for (const radio of screen.getAllByRole('radio', { name: '허용하지 않음' })) await user.click(radio)
     await user.click(screen.getByRole('checkbox', { name: '정보 최소화' }))
@@ -104,6 +108,17 @@ describe('PermissionReviewScreen', () => {
     await user.type(screen.getByRole('textbox', { name: '내 판단 근거' }), '   ')
     expect(onRationaleTextChange).toHaveBeenLastCalledWith('photo-scan', '   ')
     expect(screen.getByRole('button', { name: '선택 검토' })).toBeDisabled()
+  })
+
+  it('shows the rationale 240-character boundary and remaining count', async () => {
+    const user = userEvent.setup()
+    renderReview({ mode: 'revision', progress: progress({ reasonTags: ['data-minimization'], rationaleText: '' }) })
+    const rationale = screen.getByRole('textbox', { name: '내 판단 근거' })
+    expect(rationale).toHaveAttribute('maxlength', '240')
+    expect(screen.getByText(/남은 글자 수: 240자/)).toBeVisible()
+    await user.type(rationale, '가'.repeat(240))
+    expect(rationale).toHaveValue('가'.repeat(240))
+    expect(screen.getByText(/남은 글자 수: 0자/)).toBeVisible()
   })
 
   it('shows the exact sentence frame for a revision rationale', () => {

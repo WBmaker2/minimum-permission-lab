@@ -90,7 +90,21 @@ describe('labReducer', () => {
     state = labReducer(state, { type: 'SET_CONTROL_ACTION', caseId: 'voice-reading', action: 'alternative' })
     expect(labReducer(state, { type: 'OPEN_IMPACT' })).toBe(state)
     state = labReducer(state, { type: 'ACKNOWLEDGE_CONDITION', caseId: 'voice-reading', conditionId: 'voice-press-and-delete' })
-    expect(labReducer(state, { type: 'OPEN_IMPACT' }).stage).toBe('revision-review')
+    const revision = labReducer(state, { type: 'OPEN_IMPACT' })
+    expect(revision.stage).toBe('revision-review')
+    expect(revision.caseProgress['voice-reading'].revisedDecisions).toEqual(
+      revision.caseProgress['voice-reading'].initialDecisions,
+    )
+    expect(revision.caseProgress['voice-reading'].revisedDecisions).not.toBe(
+      revision.caseProgress['voice-reading'].initialDecisions,
+    )
+  })
+
+  it('supports status updates without changing learning progress', () => {
+    const initial = createInitialLabState()
+    const updated = labReducer(initial, { type: 'SET_STATUS', message: '저장 기록을 지웠습니다.' })
+    expect(updated.statusMessage).toBe('저장 기록을 지웠습니다.')
+    expect(updated.caseProgress).toBe(initial.caseProgress)
   })
 
   it('requires map switch before acknowledging the opt-in condition', () => {

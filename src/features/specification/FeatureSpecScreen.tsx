@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { useId, useState, type ReactElement } from 'react'
 import { GROUP_BOARD_ALIAS_EXAMPLES } from '../../content/cases'
 import { getPermissionDefinition } from '../../content/permissions'
 import type { AppCase } from '../../domain/model'
@@ -6,6 +6,7 @@ import PermissionGlyph from '../../components/PermissionGlyph'
 import PrimaryActionButton from '../../components/PrimaryActionButton'
 import DataFlowSummary from './DataFlowSummary'
 import FictionalAliasPractice from './FictionalAliasPractice'
+import ActionRequirementHint from '../../components/ActionRequirementHint'
 
 export interface FeatureSpecScreenProps {
   appCase: AppCase
@@ -20,6 +21,10 @@ const QUESTIONS = [
 ] as const
 
 export default function FeatureSpecScreen({ appCase, onBeginReview }: FeatureSpecScreenProps): ReactElement {
+  const [alias, setAlias] = useState('')
+  const actionRequirementId = `${useId()}-specification-action-requirement`
+  const aliasRequired = appCase.id === 'group-board'
+  const ready = !aliasRequired || alias.trim().length > 0
   return (
     <main>
       <h2 data-stage-heading tabIndex={-1}>{appCase.title}</h2>
@@ -48,8 +53,22 @@ export default function FeatureSpecScreen({ appCase, onBeginReview }: FeatureSpe
           })}
         </ul>
       </section>
-      {appCase.id === 'group-board' && <FictionalAliasPractice examples={GROUP_BOARD_ALIAS_EXAMPLES} />}
-      <PrimaryActionButton pulse stepNumber={2} onClick={onBeginReview}>
+      {appCase.id === 'group-board' && (
+        <FictionalAliasPractice
+          examples={GROUP_BOARD_ALIAS_EXAMPLES}
+          value={alias}
+          onChange={setAlias}
+          onUseExample={setAlias}
+        />
+      )}
+      {!ready && <ActionRequirementHint id={actionRequirementId} message="가상 별명을 한 글자 이상 입력하면 권한 심사를 시작할 수 있습니다." />}
+      <PrimaryActionButton
+        pulse={ready}
+        stepNumber={2}
+        disabled={!ready}
+        aria-describedby={!ready ? actionRequirementId : undefined}
+        onClick={() => onBeginReview()}
+      >
         권한 심사 시작
       </PrimaryActionButton>
     </main>

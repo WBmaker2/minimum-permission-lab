@@ -31,6 +31,7 @@ export type LabAction =
   | { type: 'COMPLETE_REVOCATION' }
   | { type: 'OPEN_REPORT' }
   | { type: 'SET_SAVE_ON_DEVICE'; enabled: boolean }
+  | { type: 'SET_STATUS'; message: string }
   | { type: 'LOAD_SAVED_PROGRESS'; state: LabState }
   | { type: 'RESET_LAB' }
 
@@ -155,7 +156,10 @@ export function labReducer(state: LabState, action: LabAction): LabState {
         return withCaseProgress({ ...state, stage: 'impact' }, state.activeCaseId, { ...progress, impactViewed: true })
       }
       if (state.stage === 'impact' && progress.controlAction !== null && areCaseConditionsSatisfied(state.activeCaseId, progress)) {
-        return { ...state, stage: 'revision-review' }
+        const revisedDecisions = Object.fromEntries(
+          Object.entries(progress.initialDecisions).map(([permissionId, decision]) => [permissionId, decision ? { ...decision } : decision]),
+        ) as CaseProgress['revisedDecisions']
+        return withCaseProgress({ ...state, stage: 'revision-review' }, state.activeCaseId, { ...progress, revisedDecisions })
       }
       return state
     }
@@ -205,8 +209,9 @@ export function labReducer(state: LabState, action: LabAction): LabState {
     case 'SET_CASE_RATIONALE_TEXT': {
       if (state.stage !== 'revision-review' || state.activeCaseId !== action.caseId) return state
       const progress = state.caseProgress[action.caseId]
-      if (!progress || progress.rationaleText === action.value) return state
-      return withCaseProgress(state, action.caseId, { ...progress, rationaleText: action.value })
+      const value = action.value.slice(0, 240)
+      if (!progress || progress.rationaleText === value) return state
+      return withCaseProgress(state, action.caseId, { ...progress, rationaleText: value })
     }
     case 'TOGGLE_CASE_REASON_TAG': {
       if (state.stage !== 'revision-review' || state.activeCaseId !== action.caseId) return state
@@ -238,6 +243,8 @@ export function labReducer(state: LabState, action: LabAction): LabState {
       return { ...state, stage: 'report', activeCaseId: null }
     case 'SET_SAVE_ON_DEVICE':
       return state.saveOnDevice === action.enabled ? state : { ...state, saveOnDevice: action.enabled }
+    case 'SET_STATUS':
+      return state.statusMessage === action.message ? state : { ...state, statusMessage: action.message }
     case 'LOAD_SAVED_PROGRESS':
       return state.stage === 'start' ? copyLabState(action.state) : state
     case 'RESET_LAB':

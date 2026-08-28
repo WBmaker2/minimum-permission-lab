@@ -21,6 +21,15 @@ async function completeAllCases(page: Page): Promise<void> {
       await page.getByRole('button', { name: '기능 명세 보기', exact: true }).press('Enter')
       await expect(caseHeading).toBeVisible()
     }
+    if (caseId === 'group-board') {
+      const aliasInput = page.getByRole('textbox', { name: '가상 별명 연습' })
+      await expect(aliasInput).toHaveValue('')
+      const blockedReviewStart = page.getByRole('button', { name: '권한 심사 시작', exact: true })
+      await expect(blockedReviewStart).toBeDisabled()
+      await expect(blockedReviewStart).toHaveAttribute('aria-describedby')
+      await page.getByRole('button', { name: '예시 사용: 햇살', exact: true }).click()
+      await expect(aliasInput).toHaveValue('햇살')
+    }
     const reviewStart = page.getByRole('button', { name: '권한 심사 시작', exact: true })
     if (await reviewStart.count() > 0) await reviewStart.press('Enter')
 

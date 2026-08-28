@@ -7,6 +7,7 @@ export interface LabContextValue {
   dispatch: Dispatch<LabAction>
   setSaveOnDevice: (enabled: boolean) => void
   loadSavedProgressOnRequest: () => void
+  clearSavedProgressOnRequest: () => void
 }
 
 export const LabContext = createContext<LabContextValue | null>(null)

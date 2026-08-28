@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { useId, type ReactElement } from 'react'
 
 import type { ConditionalScenario } from '../../content/conditionalScenarios'
 import { MAP_CURRENT_POSITION_FEATURE_LABEL } from '../../domain/buildFunctionImpacts'
@@ -19,6 +19,7 @@ export default function ConditionalScenarioCard({
   onSwitchChange,
   onAcknowledge,
 }: ConditionalScenarioCardProps): ReactElement {
+  const hintId = `${useId()}-condition-hint`
   const hasSwitch = scenario.featureSwitchId !== undefined
   const switchLabel = `${MAP_CURRENT_POSITION_FEATURE_LABEL} 기능 켜기`
 
@@ -43,10 +44,12 @@ export default function ConditionalScenarioCard({
       <button
         type="button"
         disabled={acknowledged || (hasSwitch && !switchEnabled)}
+        aria-describedby={hasSwitch && !switchEnabled ? hintId : undefined}
         onClick={() => onAcknowledge(scenario.caseId, scenario.id)}
       >
         {acknowledged ? '비교 확인 완료' : '비교 확인'}
       </button>
+      {hasSwitch && !switchEnabled && <p id={hintId} role="note">먼저 학습용 기능 스위치를 켜면 비교할 수 있습니다.</p>}
     </article>
   )
 }

@@ -34,9 +34,11 @@ export default function RationaleComposer({
         id={`${idPrefix}-text`}
         value={value}
         rows={4}
+        maxLength={240}
         aria-describedby={helpId}
         onChange={(event) => onTextChange(caseId, event.target.value)}
       />
+      <p>남은 글자 수: {Math.max(0, 240 - value.length)}자</p>
       <p id={helpId}>
         실제 이름·전화번호·주소 등 개인정보를 입력하지 마세요. 저장 동의가 켜져 있으면 입력한 원문이 이 기기의 학습 기록에 보관될 수 있습니다. 이 문장은 AI나 키워드로 채점하지 않으며, 입력한 원문을 바꾸지 않습니다.
       </p>

@@ -27,7 +27,7 @@ export interface SavedProgressV1 {
   readonly state: LabState
 }
 
-export const RESTORED_STATUS_MESSAGE = '학습 진행을 불러왔습니다. 이 앱은 실제 권한을 요청하지 않습니다.'
+export const RESTORED_STATUS_MESSAGE = '저장된 학습 기록을 불러왔습니다.'
 
 const PERMISSION_IDS: readonly PermissionId[] = ['camera', 'microphone', 'location', 'contacts']
 const LEARNER_CHOICES: readonly LearnerChoice[] = ['allow-current-feature', 'deny', 'more-info']

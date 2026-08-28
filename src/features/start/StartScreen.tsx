@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { useId, type ReactElement } from 'react'
 import {
   HELP_REQUEST_NOTICE,
   LEARNING_MODEL_NOTICE,
@@ -9,6 +9,7 @@ import type { CaseId, LabState } from '../../domain/model'
 import PrimaryActionButton from '../../components/PrimaryActionButton'
 import CaseSelector from './CaseSelector'
 import { isCaseProgressComplete } from '../../app/labSelectors'
+import ActionRequirementHint from '../../components/ActionRequirementHint'
 
 export interface StartScreenProps {
   state: LabState
@@ -16,6 +17,7 @@ export interface StartScreenProps {
   onOpenSpecification: () => void
   onSaveOnDeviceChange: (enabled: boolean) => void
   onLoadSavedProgress: () => void
+  onClearSavedProgress: () => void
 }
 
 export default function StartScreen({
@@ -24,7 +26,9 @@ export default function StartScreen({
   onOpenSpecification,
   onSaveOnDeviceChange,
   onLoadSavedProgress,
+  onClearSavedProgress,
 }: StartScreenProps): ReactElement {
+  const clearHintId = `${useId()}-clear-storage-hint`
   const completedCaseIds = Object.entries(state.caseProgress)
     .filter(([caseId, progress]) => isCaseProgressComplete(caseId as CaseId, progress))
     .map(([caseId]) => caseId as CaseId)
@@ -70,9 +74,17 @@ export default function StartScreen({
           />
           이 기기에 저장
         </label>
-        <p>공용 기기에서는 저장하지 않고 사용 후 기록을 삭제하세요.</p>
+        {state.saveOnDevice ? (
+          <p>권한 선택과 근거 문장만 이 기기에 저장 중입니다. 별명과 실제 개인정보는 저장하지 않습니다.</p>
+        ) : (
+          <p>공용 기기에서는 저장하지 않고 사용 후 기록을 삭제하세요.</p>
+        )}
         <button type="button" onClick={onLoadSavedProgress}>
           이 기기에 저장한 기록 불러오기
+        </button>
+        <ActionRequirementHint id={clearHintId} message="이 앱의 전용 학습 기록만 지우며 다른 저장 정보는 건드리지 않습니다." />
+        <button type="button" aria-describedby={clearHintId} onClick={onClearSavedProgress}>
+          저장 기록 지우기
         </button>
       </section>
       {state.statusMessage && <p role="status">{state.statusMessage}</p>}

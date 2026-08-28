@@ -5,6 +5,8 @@ import PrimaryActionButton from '../../components/PrimaryActionButton'
 import StatusLiveRegion from '../../components/StatusLiveRegion'
 import PermissionCard from './PermissionCard'
 import RationaleComposer from './RationaleComposer'
+import ActionRequirementHint from '../../components/ActionRequirementHint'
+import { countSelectedDecisions, getDecisionHint } from './reviewProgress'
 
 export interface PermissionReviewScreenProps {
   appCase: AppCase
@@ -36,10 +38,17 @@ export default function PermissionReviewScreen({
   const [statusMessage, setStatusMessage] = useState('')
   const titleId = `${useId()}-permission-review-title`
   const decisions = mode === 'initial' ? progress.initialDecisions : progress.revisedDecisions
-  const allDecisionsMade = appCase.requestedPermissions.every((permissionId) => decisions[permissionId]?.permissionId === permissionId)
+  const selectedCount = countSelectedDecisions(decisions, appCase.requestedPermissions)
+  const totalCount = appCase.requestedPermissions.length
+  const allDecisionsMade = selectedCount === totalCount
   const rationaleReady = mode === 'initial' || (progress.reasonTags.length >= 1 && progress.rationaleText.trim().length > 0)
   const ready = allDecisionsMade && rationaleReady
   const stepNumber = mode === 'initial' ? 3 : 5
+  const actionRequirementId = `${useId()}-review-action-requirement`
+  const decisionProgressLabel = mode === 'initial'
+    ? `권한 ${selectedCount}/${totalCount} 선택`
+    : `수정 선택 ${selectedCount}/${totalCount}`
+  const requirementMessage = getDecisionHint({ mode, selectedCount, totalCount, rationaleReady })
 
   const handleDecision = (permissionId: PermissionId, choice: LearnerChoice) => {
     onDecision({ permissionId, choice })
@@ -53,6 +62,7 @@ export default function PermissionReviewScreen({
       <h2 data-stage-heading tabIndex={-1}>{mode === 'initial' ? '최초 권한 심사' : '수정 권한 심사'}</h2>
       <p>{appCase.title}: {appCase.coreFunction}</p>
       <p>각 권한은 이 기능 계약에 필요한 만큼만 판단합니다. 실제 기기 권한을 요청하지 않습니다.</p>
+      <p aria-live="polite">{decisionProgressLabel}</p>
       <StatusLiveRegion message={statusMessage} />
       {mode === 'revision' && (
         <section aria-labelledby="initial-choice-comparison-title">
@@ -95,7 +105,14 @@ export default function PermissionReviewScreen({
           onTagToggle={onReasonTagToggle}
         />
       )}
-      <PrimaryActionButton pulse={ready} stepNumber={stepNumber} disabled={!ready} onClick={onReview}>
+      {!ready && <ActionRequirementHint id={actionRequirementId} message={requirementMessage} />}
+      <PrimaryActionButton
+        pulse={ready}
+        stepNumber={stepNumber}
+        disabled={!ready}
+        aria-describedby={!ready ? actionRequirementId : undefined}
+        onClick={onReview}
+      >
         선택 검토
       </PrimaryActionButton>
     </main>

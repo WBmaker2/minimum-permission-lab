@@ -39,6 +39,9 @@ describe('FeatureSpecScreen', () => {
     const user = userEvent.setup()
     const { unmount } = render(<FeatureSpecScreen appCase={APP_CASES['group-board']} onBeginReview={vi.fn()} />)
     const input = screen.getByRole('textbox', { name: '가상 별명 연습' })
+    const begin = screen.getByRole('button', { name: '권한 심사 시작' })
+    expect(begin).toBeDisabled()
+    expect(screen.getByText(/12자 이내/)).toBeVisible()
     expect(input).toHaveAttribute('type', 'text')
     expect(input).toHaveAttribute('autocomplete', 'off')
     expect(input).toHaveAttribute('maxlength', '12')
@@ -46,9 +49,21 @@ describe('FeatureSpecScreen', () => {
     expect(screen.getByText(/실제 이름·전화번호·주소 등 개인정보를 입력하지 말 것/)).toBeVisible()
     await user.type(input, '햇살')
     expect(screen.getByText('미리보기: 햇살')).toBeVisible()
+    expect(begin).toBeEnabled()
     unmount()
     render(<FeatureSpecScreen appCase={APP_CASES['group-board']} onBeginReview={vi.fn()} />)
     expect(screen.getByRole('textbox', { name: '가상 별명 연습' })).toHaveValue('')
+  })
+
+  it('fills the alias from a safe example without passing it to the review callback', async () => {
+    const user = userEvent.setup()
+    const onBeginReview = vi.fn()
+    render(<FeatureSpecScreen appCase={APP_CASES['group-board']} onBeginReview={onBeginReview} />)
+    await user.click(screen.getByRole('button', { name: '예시 사용: 햇살' }))
+    expect(screen.getByRole('textbox', { name: '가상 별명 연습' })).toHaveValue('햇살')
+    await user.click(screen.getByRole('button', { name: '권한 심사 시작' }))
+    expect(onBeginReview).toHaveBeenCalledOnce()
+    expect(JSON.stringify(onBeginReview.mock.calls)).not.toContain('햇살')
   })
 
   it('does not show alias input in other cases', () => {
