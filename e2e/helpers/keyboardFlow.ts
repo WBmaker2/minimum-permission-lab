@@ -46,6 +46,14 @@ export async function completeCaseWithKeyboard(page: Page, caseId: CaseId, onPri
   await onPrimaryAction?.(specificationButton)
   await specificationButton.press('Enter')
   await expect(page.getByRole('heading', { name: CASE_TITLES[caseId], exact: true })).toBeVisible()
+  if (caseId === 'group-board') {
+    const aliasInput = page.getByRole('textbox', { name: '가상 별명 연습' })
+    await expect(aliasInput).toHaveValue('')
+    const blockedReviewStart = page.getByRole('button', { name: '권한 심사 시작', exact: true })
+    await expect(blockedReviewStart).toBeDisabled()
+    await page.getByRole('button', { name: '예시 사용: 햇살', exact: true }).press('Space')
+    await expect(aliasInput).toHaveValue('햇살')
+  }
   const reviewButton = page.getByRole('button', { name: '권한 심사 시작', exact: true })
   await onPrimaryAction?.(reviewButton)
   await reviewButton.press('Enter')

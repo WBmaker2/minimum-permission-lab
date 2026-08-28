@@ -29,7 +29,7 @@ export default function ReportScreen({ report, onPrint, onReset }: ReportScreenP
         if (!result) return null
         const appCase = APP_CASES[caseId]
         return (
-          <article key={caseId} aria-labelledby={`${caseId}-report-title`}>
+          <article key={caseId} data-report-case aria-labelledby={`${caseId}-report-title`}>
             <h3 id={`${caseId}-report-title`}>{appCase.title}</h3>
             <DecisionComparisonTable initial={result.initial} revised={result.revised} changedPermissionIds={result.changedPermissionIds} />
             <p>다음 행동: <span>{result.controlAction === 'alternative' ? '대안 사용' : '권한 철회'}</span> · <span>{result.controlAction === 'alternative' ? '통제 후 허용' : '허용하지 않기'}</span></p>
@@ -43,7 +43,7 @@ export default function ReportScreen({ report, onPrint, onReset }: ReportScreenP
         <h3 id="revoked-permissions-title">공통 철회 권한</h3>
         {report.revokedPermissionIds.length > 0 ? <ul>{report.revokedPermissionIds.map((permissionId: PermissionId) => {
           const definition = getPermissionDefinition(permissionId)
-          return <li key={permissionId}><PermissionGlyph permissionId={permissionId} />{definition.label} · {definition.shapeLabel} · 권한 철회</li>
+          return <li key={permissionId}><PermissionGlyph permissionId={permissionId} /><span>{definition.label}</span><span aria-hidden="true"> · 모양: {definition.shapeLabel}</span><span> · 권한 철회</span></li>
         })}</ul> : <p>철회한 권한 없음</p>}
       </section>
       <p role="status" aria-live="polite" className="report-status">{statusMessage}</p>

@@ -54,11 +54,13 @@ test.describe('375px reduced-motion learner flow', () => {
 
     const tables = page.locator('.comparison-table-scroll')
     await expect(tables).toHaveCount(4)
-    for (let index = 0; index < await tables.count(); index += 1) {
-      const table = tables.nth(index)
-      const overflow = await table.evaluate((element) => ({ scrollWidth: element.scrollWidth, clientWidth: element.clientWidth, overflowX: getComputedStyle(element).overflowX }))
-      expect(overflow.overflowX).toBe('auto')
-      expect(overflow.scrollWidth).toBeGreaterThan(overflow.clientWidth)
+    await expect(tables.first()).toBeHidden()
+    const cards = page.locator('.decision-comparison-cards')
+    await expect(cards).toHaveCount(4)
+    await expect(cards.first()).toBeVisible()
+    await expect(cards.first().getByRole('group')).toHaveCount(4)
+    for (const permission of ['카메라', '마이크', '위치', '연락처']) {
+      await expect(cards.first().getByRole('heading', { name: permission, exact: true })).toBeVisible()
     }
   })
 

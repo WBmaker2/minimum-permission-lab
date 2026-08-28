@@ -83,7 +83,7 @@ async function completeAllCases(page: Page): Promise<void> {
   await expect(page.getByText('판단이 바뀐 것은 배움의 증거예요')).toBeVisible()
   await expect(page.getByRole('table')).toHaveCount(4)
   await expect(page.locator('table caption')).toHaveCount(4)
-  const reportCases = page.getByRole('article')
+  const reportCases = page.locator('[data-report-case]')
   await expect(reportCases).toHaveCount(4)
   for (let index = 0; index < 4; index += 1) {
     await expect(reportCases.nth(index).getByRole('columnheader', { name: '최초 선택' })).toBeVisible()
@@ -94,7 +94,7 @@ async function completeAllCases(page: Page): Promise<void> {
     }
     await expect(reportCases.nth(index).getByText(/다음 행동:/)).toBeVisible()
   }
-  await expect(page.getByText('◆ 판단 변경')).toBeVisible()
+  await expect(page.getByText('◆ 판단 변경').first()).toBeVisible()
   await expect(page.getByText('통제 후 허용')).toHaveCount(2)
   await expect(page.getByText('허용하지 않기')).toHaveCount(2)
   await expect(page.getByText('가상 학습 모델이며 실제 앱 판정이 아님', { exact: true })).toBeVisible()

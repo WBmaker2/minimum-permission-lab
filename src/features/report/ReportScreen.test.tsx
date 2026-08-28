@@ -56,21 +56,21 @@ describe('ReportScreen', () => {
     expect(screen.getAllByRole('article')).toHaveLength(4)
     expect(screen.getAllByRole('columnheader', { name: '권한' })).toHaveLength(4)
     expect(screen.getAllByRole('columnheader', { name: '최초 선택' })).toHaveLength(4)
-    expect(screen.getAllByText('변경 없음')).toHaveLength(16)
+    expect(screen.getAllByText('변경 없음')).toHaveLength(32)
     expect(screen.getAllByText(/권한 철회/)).toHaveLength(4)
     expect(screen.getAllByText(/통제 후 허용/)).toHaveLength(2)
     expect(screen.getAllByText(/허용하지 않기/)).toHaveLength(2)
     expect(screen.getAllByText('● 근거 있음')).toHaveLength(4)
     expect(screen.getAllByText('△ 근거 보완')).toHaveLength(12)
     expect(screen.getAllByRole('blockquote')).toHaveLength(4)
-    expect(screen.getAllByText('수정 선택')).toHaveLength(4)
-    expect(screen.getAllByText('변경 여부')).toHaveLength(4)
-    expect(screen.getAllByText('허용하지 않음')).toHaveLength(32)
+    expect(screen.getAllByText('수정 선택')).toHaveLength(20)
+    expect(screen.getAllByText('변경 여부')).toHaveLength(20)
+    expect(screen.getAllByText('허용하지 않음')).toHaveLength(64)
     expect(screen.queryAllByText('설명을 더 확인')).toHaveLength(0)
-    expect(screen.getAllByText('카메라 테두리')).toHaveLength(4)
-    expect(screen.getAllByText('소리 물결')).toHaveLength(4)
-    expect(screen.getAllByText('지도 위치표시')).toHaveLength(4)
-    expect(screen.getAllByText('사람 카드')).toHaveLength(4)
+    expect(screen.getAllByText('모양: 카메라 테두리')).toHaveLength(8)
+    expect(screen.getAllByText('모양: 소리 물결')).toHaveLength(8)
+    expect(screen.getAllByText('모양: 지도 위치표시')).toHaveLength(8)
+    expect(screen.getAllByText('모양: 사람 카드')).toHaveLength(8)
     expect(screen.getByRole('heading', { level: 3, name: '공통 철회 권한' })).toBeVisible()
     expect(screen.getAllByText('카메라').length).toBeGreaterThan(0)
     expect(screen.getAllByText('연락처').length).toBeGreaterThan(0)
@@ -118,6 +118,23 @@ describe('ReportScreen', () => {
     const table = within(article).getByRole('table')
     expect(within(table).getByRole('caption')).toHaveTextContent('최초 선택과 수정 선택 비교')
     expect(within(table).getAllByRole('row')).toHaveLength(5)
+  })
+
+  it('renders a mobile comparison card list with all four permission decisions', () => {
+    render(<ReportScreen report={report()} onPrint={vi.fn()} onReset={vi.fn()} />)
+    const comparisons = screen.getAllByRole('region', { name: '권한별 비교' })
+    expect(comparisons).toHaveLength(4)
+    const first = comparisons[0]
+    expect(within(first).getByRole('heading', { name: '권한별 비교' })).toBeVisible()
+    expect(within(first).getAllByRole('group')).toHaveLength(4)
+    for (const permission of ['카메라', '마이크', '위치', '연락처']) {
+      const card = within(first).getByRole('heading', { name: permission }).closest('[role="group"]') as HTMLElement | null
+      expect(card).toBeInTheDocument()
+      expect(within(card!).getByText('최초 선택')).toBeVisible()
+      expect(within(card!).getByText('수정 선택')).toBeVisible()
+      expect(within(card!).getByText('변경 여부')).toBeVisible()
+      expect(within(card!).getAllByText('허용하지 않음')).toHaveLength(2)
+    }
   })
 
   it('gives each rubric section a unique existing labelled heading', () => {
