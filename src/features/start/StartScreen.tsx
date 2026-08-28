@@ -1,7 +1,6 @@
 import { useId, type ReactElement } from 'react'
 import {
   HELP_REQUEST_NOTICE,
-  LEARNING_MODEL_NOTICE,
   NOT_IN_SCOPE_NOTICE,
   TEACHER_GUIDE_NOTICE,
 } from '../../content/learningNotices'
@@ -42,7 +41,7 @@ export default function StartScreen({
       </section>
       <section aria-labelledby="learning-boundary-title">
         <h3 id="learning-boundary-title">학습 범위와 안전</h3>
-        <p>{LEARNING_MODEL_NOTICE}</p>
+        <p>이 활동은 가상 학습 모델이며 실제 앱 판정이 아님을 알려 드립니다. 실제 권한을 묻지 않습니다.</p>
         <p>{NOT_IN_SCOPE_NOTICE}</p>
         <details>
           <summary>교사용 안내</summary>

@@ -15,7 +15,7 @@ export const PERMISSION_CATALOG = Object.freeze([
   Object.freeze({
     id: 'microphone',
     label: '마이크',
-    shortDescription: '소리를 듣는 기능입니다.',
+    shortDescription: '목소리를 녹음하는 기능입니다.',
     detailDescription: '목소리를 녹음하거나 소리를 들려줄 때 마이크를 사용합니다.',
     shapeLabel: '소리 물결',
     iconName: 'sound-wave',

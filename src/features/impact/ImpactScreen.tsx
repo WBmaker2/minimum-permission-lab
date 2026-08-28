@@ -1,6 +1,5 @@
 import { useId, useMemo, useState, type ReactElement } from 'react'
 
-import LearningModelNotice from '../../components/LearningModelNotice'
 import PrimaryActionButton from '../../components/PrimaryActionButton'
 import StatusLiveRegion from '../../components/StatusLiveRegion'
 import { CONDITIONAL_SCENARIOS, CONDITIONAL_SCENARIO_ORDER } from '../../content/conditionalScenarios'
@@ -59,7 +58,7 @@ export default function ImpactScreen({
     <main aria-labelledby={titleId}>
       <h2 id={titleId} data-stage-heading tabIndex={-1}>기능 영향 시뮬레이션</h2>
       <p>{appCase.title}: 선택한 권한이 기능에 미치는 영향을 살펴봅니다.</p>
-      <LearningModelNotice />
+      <p>이 화면은 실제 권한을 요청하지 않는 가상 학습 모델 비교입니다.</p>
       <StatusLiveRegion message={statusMessage} />
       <FunctionImpactList impacts={impacts} />
       {scenarios.length > 0 && (

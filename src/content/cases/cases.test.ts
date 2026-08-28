@@ -65,6 +65,10 @@ describe('four virtual learning cases', () => {
     )
   })
 
+  it('describes class-map flow as the learner choosing a classroom name', () => {
+    expect(APP_CASES['class-map'].dataFlow).toContain('학습자가 교실 이름을 선택')
+  })
+
   it('keeps alias examples as content and out of case state fields', () => {
     expect(GROUP_BOARD_ALIAS_EXAMPLES).toEqual(['햇살', '새싹', '푸른별'])
     expect(Object.keys(APP_CASES['group-board'])).not.toContain('alias')

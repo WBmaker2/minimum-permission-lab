@@ -6,18 +6,43 @@ import { createElement } from 'react'
 
 import {
   HELP_REQUEST_NOTICE,
+  LEARNING_MODEL_DETAILS,
   LEARNING_MODEL_NOTICE,
+  LEARNING_MODEL_SUMMARY,
   NOT_IN_SCOPE_NOTICE,
   TEACHER_GUIDE_NOTICE,
 } from './learningNotices'
 import { GROUP_BOARD_ALIAS_EXAMPLES } from './cases/groupBoard'
 import RationaleComposer from '../features/review/RationaleComposer'
+import LearningModelNotice from '../components/LearningModelNotice'
 import { createInitialLabState } from '../app/labReducer'
 import StartScreen from '../features/start/StartScreen'
 
 afterEach(cleanup)
 
 describe('learning safety notices', () => {
+  it('keeps the scan-friendly summary separate from the storage boundary details', () => {
+    expect(LEARNING_MODEL_SUMMARY).toBe('실제 권한을 묻지 않는 가상 학습 모델입니다. 개인정보를 입력하지 마세요. 저장은 직접 선택합니다.')
+    expect(LEARNING_MODEL_SUMMARY.split('. ').filter(Boolean)).toHaveLength(3)
+    expect(LEARNING_MODEL_DETAILS).toContain('저장 동의')
+    expect(LEARNING_MODEL_DETAILS).toContain('근거 원문')
+    expect(LEARNING_MODEL_DETAILS).toContain('이 기기')
+    expect(LEARNING_MODEL_DETAILS).toContain('가상 별명과 실제 개인정보는 수집하지 않습니다')
+  })
+
+  it('renders the compact summary first and keeps storage details behind native disclosure', async () => {
+    const user = userEvent.setup()
+    render(createElement(LearningModelNotice))
+    expect(screen.getByText(LEARNING_MODEL_SUMMARY)).toBeVisible()
+    const details = screen.getByText('자세히 보기').closest('details') as HTMLDetailsElement
+    expect(details).toBeInTheDocument()
+    expect(details.open).toBe(false)
+    expect(screen.queryByText(LEARNING_MODEL_DETAILS)).not.toBeVisible()
+    await user.click(screen.getByText('자세히 보기'))
+    expect(details.open).toBe(true)
+    expect(screen.getByText(LEARNING_MODEL_DETAILS)).toBeVisible()
+  })
+
   it('states that judgments belong to a virtual learning model', () => {
     expect(LEARNING_MODEL_NOTICE).toContain('가상 학습 모델이며 실제 앱 판정이 아님')
   })
@@ -90,6 +115,7 @@ describe('learning safety notices', () => {
       onOpenSpecification: vi.fn(),
       onSaveOnDeviceChange: vi.fn(),
       onLoadSavedProgress: vi.fn(),
+      onClearSavedProgress: vi.fn(),
     }))
 
     const boundary = screen.getByRole('heading', { name: '학습 범위와 안전' }).parentElement

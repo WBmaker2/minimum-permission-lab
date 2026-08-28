@@ -9,7 +9,7 @@ const requestedPermissions = Object.freeze([
 
 const dataFlow = Object.freeze([
   '저장된 지도 불러오기',
-  '학습자가 교실 이름 선택',
+  '학습자가 교실 이름을 선택',
   '경로 보여 주기',
 ])
 

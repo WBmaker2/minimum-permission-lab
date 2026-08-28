@@ -36,6 +36,10 @@ describe('permission catalog', () => {
     }
   })
 
+  it('uses a child-friendly microphone description', () => {
+    expect(getPermissionDefinition('microphone').shortDescription).toBe('목소리를 녹음하는 기능입니다.')
+  })
+
   it('uses a unique shape label and the exact glyph mapping for every permission', () => {
     expect(
       new Set(PERMISSION_CATALOG.map((permission) => permission.shapeLabel)).size,

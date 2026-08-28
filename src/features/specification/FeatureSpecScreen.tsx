@@ -44,9 +44,14 @@ export default function FeatureSpecScreen({ appCase, onBeginReview }: FeatureSpe
                 <p>{definition.shortDescription}</p>
                 <div>
                   <h4>{QUESTIONS[0]}</h4><p>{rule.neededInformation}</p>
-                  <h4>{QUESTIONS[1]}</h4><p>{rule.timing}</p>
-                  <h4>{QUESTIONS[2]}</h4><p>{rule.denialImpact}</p>
-                  <h4>{QUESTIONS[3]}</h4><p>{rule.alternative}</p>
+                  <details>
+                    <summary>자세히 보기</summary>
+                    <div>
+                      <h4>{QUESTIONS[1]}</h4><p>{rule.timing}</p>
+                      <h4>{QUESTIONS[2]}</h4><p>{rule.denialImpact}</p>
+                      <h4>{QUESTIONS[3]}</h4><p>{rule.alternative}</p>
+                    </div>
+                  </details>
                 </div>
               </li>
             )

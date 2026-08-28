@@ -30,8 +30,8 @@ export default function PermissionCard({
       <legend>
         <PermissionGlyph permissionId={permissionId} />
         <span>{permission.label}</span>
-        <span>{permission.shapeLabel}</span>
       </legend>
+      <p aria-hidden="true">{permission.shapeLabel}</p>
       <p id={descriptionId}>{permission.detailDescription}</p>
       <p>필요 정보: {rule.neededInformation}</p>
       <p>사용 시점: {rule.timing}</p>

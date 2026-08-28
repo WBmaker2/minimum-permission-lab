@@ -28,7 +28,7 @@ export default function RationaleComposer({
 
   return (
     <section aria-labelledby={`${idPrefix}-title`}>
-      <h3 id={`${idPrefix}-title`}>수정한 이유 기록</h3>
+      <h3 id={`${idPrefix}-title`}>왜 그렇게 골랐는지 적기</h3>
       <label htmlFor={`${idPrefix}-text`}>내 판단 근거</label>
       <textarea
         id={`${idPrefix}-text`}

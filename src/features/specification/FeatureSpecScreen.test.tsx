@@ -9,7 +9,7 @@ import FeatureSpecScreen from './FeatureSpecScreen'
 afterEach(cleanup)
 
 describe('FeatureSpecScreen', () => {
-  it('shows the feature contract, ordered data flow, permissions and guiding questions', () => {
+  it('shows one guiding question by default and keeps the other questions in native details', async () => {
     render(<FeatureSpecScreen appCase={APP_CASES['photo-scan']} onBeginReview={vi.fn()} />)
     expect(screen.getByRole('heading', { level: 2, name: '사진 스캔 과제함' })).toBeVisible()
     expect(screen.getByText(APP_CASES['photo-scan'].coreFunction)).toBeVisible()
@@ -23,7 +23,15 @@ describe('FeatureSpecScreen', () => {
       '권한을 주지 않으면 어떤 기능만 제한되나요?',
       '더 적은 정보로 같은 목적을 이룰 방법이 있나요?',
     ]
-    for (const question of questions) expect(screen.getAllByRole('heading', { name: question })).toHaveLength(4)
+    expect(screen.getAllByRole('heading', { name: questions[0] })).toHaveLength(4)
+    for (const question of questions.slice(1)) {
+      expect(screen.getAllByRole('heading', { name: question })).toHaveLength(4)
+      expect(screen.getAllByRole('heading', { name: question }).every((heading) => !(heading.closest('details') as HTMLDetailsElement).open)).toBe(true)
+    }
+    const disclosures = screen.getAllByText('자세히 보기')
+    expect(disclosures).toHaveLength(4)
+    await userEvent.setup().click(disclosures[0])
+    expect(screen.getAllByRole('heading', { name: questions[1] })[0]).toBeVisible()
   })
 
   it('starts the review with a highlighted primary action', async () => {
