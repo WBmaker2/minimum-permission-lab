@@ -9,6 +9,12 @@ export interface UpdateHistoryEntry {
 
 export const UPDATE_HISTORY: readonly UpdateHistoryEntry[] = [
   {
+    date: '2026-08-28',
+    category: '개선',
+    summary: '모바일·키보드·보조기술 대응 구조와 저장 경계 보강',
+    reason: '320px·375px 모바일 카드, 키보드 단계 포커스, 모션 감소 대체와 저장 동의(opt-in) 경계를 보강하고 자동 의미 구조를 확인함; VoiceOver·TalkBack 수동 실행 결과는 포함하지 않음',
+  },
+  {
     date: '2026-08-27',
     category: '개선',
     summary: '조건부 기능 스위치 재확인 흐름 보강',
@@ -29,8 +35,8 @@ export const UPDATE_HISTORY: readonly UpdateHistoryEntry[] = [
   {
     date: '2026-08-27',
     category: '개선',
-    summary: '모바일·키보드·스크린 리더 검증 보강',
-    reason: '375px와 보조기술 사용자가 전체 학습 흐름을 완료하도록 함',
+    summary: '모바일·키보드·구조적 보조기술 대응 보강',
+    reason: '375px와 키보드 흐름, 자동 접근성 구조를 보강함; VoiceOver·TalkBack 수동 검증은 실행하지 않음',
   },
   {
     date: '2026-08-26',
@@ -60,7 +66,7 @@ export const UPDATE_HISTORY: readonly UpdateHistoryEntry[] = [
     date: '2026-08-26',
     category: '콘텐츠 검수',
     summary: '개인정보 및 가상 모델 안내 검증',
-    reason: '실제 권한 요청과 개인정보 저장이 없음을 학습자에게 더 분명히 알림: 이는 가상 별명과 실제 개인정보를 수집·저장하지 않는다는 뜻이며, 이 기기에 저장 동의 시 권한 판단과 근거 원문은 로컬 학습 기록에 보관될 수 있음을 함께 명시함',
+    reason: '실제 개인정보를 수집하지 않도록 입력 금지 원칙을 안내하고, 저장 동의 시 권한 판단과 근거 원문이 이 기기에 보관될 수 있음을 구분함',
   },
   {
     date: '2026-08-26',
