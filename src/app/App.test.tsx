@@ -30,7 +30,10 @@ describe('App smoke shell', () => {
 
     await user.click(screen.getByRole('button', { name: /사진 스캔 과제함/ }))
     await user.click(screen.getByRole('button', { name: /기능 명세 보기/ }))
-    expect(screen.getByRole('heading', { level: 2, name: '사진 스캔 과제함' })).toBeVisible()
+    const specificationHeading = screen.getByRole('heading', { level: 2, name: '사진 스캔 과제함' })
+    expect(specificationHeading).toBeVisible()
+    expect(specificationHeading).toHaveAttribute('data-stage-heading')
+    expect(specificationHeading).toHaveAttribute('tabindex', '-1')
     await user.click(screen.getByRole('button', { name: /권한 심사 시작/ }))
     expect(screen.getByRole('heading', { level: 2, name: '최초 권한 심사' })).toBeVisible()
   })

@@ -60,7 +60,7 @@ export default function RevokeTrainingScreen({
 
   return (
     <main>
-      <h2>권한 철회 미니 활동</h2>
+      <h2 data-stage-heading tabIndex={-1}>권한 철회 미니 활동</h2>
       <p>사례를 마친 뒤 권한 사용 기록을 돌아보고, 계속 필요한 권한과 이제 필요 없는 권한을 구분합니다.</p>
       <StatusLiveRegion message={statusMessage} />
       {!eligible ? (

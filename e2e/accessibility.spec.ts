@@ -9,6 +9,13 @@ export async function assertNoSeriousAxeViolations(page: Page): Promise<void> {
   expect(seriousOrCritical, seriousOrCritical.map(({ id, help }) => `${id}: ${help}`).join('\n')).toEqual([])
 }
 
+async function assertStageFocus(page: Page, progress: string): Promise<void> {
+  const heading = page.locator('h2[data-stage-heading]').first()
+  await expect(heading).toBeVisible()
+  await expect(heading).toBeFocused()
+  await expect(page.locator('header').getByRole('status')).toContainText(progress)
+}
+
 async function assertStageSemantics(page: Page): Promise<void> {
   await assertNoSeriousAxeViolations(page)
   await expect(page.locator('h1')).toHaveCount(1)
@@ -27,26 +34,32 @@ async function assertStageSemantics(page: Page): Promise<void> {
 
 test('checks every learner stage, live status, focus, labels, and history dialog', async ({ page }) => {
   await page.goto('/')
+  await assertStageFocus(page, '1/7 · 시작')
   await assertStageSemantics(page)
-  await expect(page.getByRole('status').first()).toContainText('가상 학습 모델')
+  await expect(page.getByText('가상 학습 모델', { exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: '사진 스캔 과제함', exact: true }).press('Space')
   await page.getByRole('button', { name: '기능 명세 보기', exact: true }).press('Enter')
+  await assertStageFocus(page, '2/7 · 기능 살펴보기')
   await assertStageSemantics(page)
   await page.getByRole('button', { name: '권한 심사 시작', exact: true }).press('Enter')
+  await assertStageFocus(page, '3/7 · 권한 고르기')
   await assertStageSemantics(page)
   for (let index = 0; index < 4; index += 1) await page.getByRole('radio', { name: '허용하지 않음', exact: true }).nth(index).press('Space')
-  await expect(page.locator('[aria-live="polite"]').filter({ hasText: '권한' })).toBeVisible()
+  await expect(page.locator('[data-live-region="status"]').filter({ hasText: '권한' })).toBeVisible()
   await page.getByRole('button', { name: '선택 검토', exact: true }).press('Enter')
+  await assertStageFocus(page, '4/7 · 영향 비교하기')
   await assertStageSemantics(page)
   await page.getByRole('radio', { name: '대안 사용', exact: true }).press('Space')
   await page.getByRole('button', { name: '최소 권한안 수정', exact: true }).press('Enter')
+  await assertStageFocus(page, '5/7 · 다시 고르기')
   await assertStageSemantics(page)
 
   for (let index = 0; index < 4; index += 1) await page.getByRole('radio', { name: '허용하지 않음', exact: true }).nth(index).press('Space')
   await page.getByRole('textbox', { name: '내 판단 근거' }).pressSequentially('필요한 정보만 사용합니다.')
   await page.getByRole('checkbox', { name: '정보 최소화', exact: true }).press('Space')
   await page.getByRole('button', { name: '선택 검토', exact: true }).press('Enter')
+  await assertStageFocus(page, '1/7 · 시작')
   await assertStageSemantics(page)
   await expect(page.getByRole('heading', { name: '학습 시작' })).toBeVisible()
 
@@ -57,6 +70,7 @@ test('checks every learner stage, live status, focus, labels, and history dialog
 
   await page.goto('/')
   await completeAllCasesWithKeyboard(page, async (stage) => {
+    await assertStageFocus(page, stage === 'revocation' ? '6/7 · 철회 연습' : '7/7 · 학습 보고서')
     await assertStageSemantics(page)
     if (stage === 'revocation') await expect(page.getByRole('heading', { name: '권한 철회 미니 활동' })).toBeVisible()
     if (stage === 'report') await expect(page.getByRole('heading', { name: '최소 권한 학습 보고서' })).toBeVisible()

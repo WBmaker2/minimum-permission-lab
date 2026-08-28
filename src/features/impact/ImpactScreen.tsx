@@ -57,7 +57,7 @@ export default function ImpactScreen({
 
   return (
     <main aria-labelledby={titleId}>
-      <h2 id={titleId}>기능 영향 시뮬레이션</h2>
+      <h2 id={titleId} data-stage-heading tabIndex={-1}>기능 영향 시뮬레이션</h2>
       <p>{appCase.title}: 선택한 권한이 기능에 미치는 영향을 살펴봅니다.</p>
       <LearningModelNotice />
       <StatusLiveRegion message={statusMessage} />

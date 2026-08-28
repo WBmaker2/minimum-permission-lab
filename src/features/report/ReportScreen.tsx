@@ -20,7 +20,7 @@ export default function ReportScreen({ report, onPrint, onReset }: ReportScreenP
   }
   return (
     <main>
-      <h2>최소 권한 학습 보고서</h2>
+      <h2 data-stage-heading tabIndex={-1}>최소 권한 학습 보고서</h2>
       <p role="note">가상 학습 모델이며 실제 앱 판정이 아님</p>
       <p>네 사례에서 처음 세운 권한안과 수정한 권한안을 나란히 돌아봅니다. 이 기록은 추천 점수나 실제 안전 판정이 아닙니다.</p>
       <CompletionSummary report={report} />

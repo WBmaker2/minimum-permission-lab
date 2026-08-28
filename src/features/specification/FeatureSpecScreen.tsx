@@ -22,7 +22,7 @@ const QUESTIONS = [
 export default function FeatureSpecScreen({ appCase, onBeginReview }: FeatureSpecScreenProps): ReactElement {
   return (
     <main>
-      <h2>{appCase.title}</h2>
+      <h2 data-stage-heading tabIndex={-1}>{appCase.title}</h2>
       <p>{appCase.coreFunction}</p>
       <p>{appCase.retentionPromise}</p>
       <DataFlowSummary dataFlow={appCase.dataFlow} />

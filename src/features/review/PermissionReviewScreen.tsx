@@ -50,7 +50,7 @@ export default function PermissionReviewScreen({
 
   return (
     <main>
-      <h2>{mode === 'initial' ? '최초 권한 심사' : '수정 권한 심사'}</h2>
+      <h2 data-stage-heading tabIndex={-1}>{mode === 'initial' ? '최초 권한 심사' : '수정 권한 심사'}</h2>
       <p>{appCase.title}: {appCase.coreFunction}</p>
       <p>각 권한은 이 기능 계약에 필요한 만큼만 판단합니다. 실제 기기 권한을 요청하지 않습니다.</p>
       <StatusLiveRegion message={statusMessage} />

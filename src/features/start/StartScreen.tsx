@@ -31,7 +31,7 @@ export default function StartScreen({
 
   return (
     <main>
-      <h2>학습 시작</h2>
+      <h2 data-stage-heading tabIndex={-1}>학습 시작</h2>
       <section aria-labelledby="learning-goal-title">
         <h3 id="learning-goal-title">학습 목표</h3>
         <p>기능 설명과 비교해 필요한 권한만 최소한으로 허용하고, 거부·대안·철회 이유를 생각하는 활동입니다. 무조건 거부하는 활동이 아닙니다.</p>

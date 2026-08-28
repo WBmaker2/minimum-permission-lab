@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, type ReactElement } from 'react'
-import { APP_CASES } from '../content/cases'
+import { APP_CASES, CASE_ORDER } from '../content/cases'
 import AppHeader from '../components/AppHeader'
 import type { AppCase, CaseId, LabState, LabStage, PermissionDecision, RevocationDecision, ConditionalScenarioId, FeatureSwitchId, ReasonTagId } from '../domain/model'
 import { LabProvider, useLab } from './LabProvider'
@@ -8,7 +8,8 @@ import FeatureSpecScreen from '../features/specification/FeatureSpecScreen'
 import PermissionReviewScreen from '../features/review/PermissionReviewScreen'
 import ImpactScreen from '../features/impact/ImpactScreen'
 import RevokeTrainingScreen from '../features/revoke/RevokeTrainingScreen'
-import { areAllCasesComplete } from './labSelectors'
+import { areAllCasesComplete, isCaseProgressComplete } from './labSelectors'
+import StageFocusManager from '../components/StageFocusManager'
 import PrimaryActionButton from '../components/PrimaryActionButton'
 import { buildReport } from '../domain/buildReport'
 import ReportScreen from '../features/report/ReportScreen'
@@ -27,6 +28,7 @@ export function LabApplication(): ReactElement {
   const openUpdateHistory = useCallback(() => setIsUpdateHistoryOpen(true), [])
   const closeUpdateHistory = useCallback(() => setIsUpdateHistoryOpen(false), [])
   const activeCase = getActiveCase(state.activeCaseId)
+  const completedCaseCount = CASE_ORDER.filter((caseId) => isCaseProgressComplete(caseId, state.caseProgress[caseId])).length
   const callbacks: StageCallbacks = {
     state,
     onSelectCase: (caseId) => dispatch({ type: 'SELECT_CASE', caseId }),
@@ -54,8 +56,10 @@ export function LabApplication(): ReactElement {
   }
 
   return <>
-    <AppHeader stage={state.stage} />
-    {renderStage(state.stage, activeCase, callbacks)}
+    <AppHeader stage={state.stage} completedCaseCount={completedCaseCount} totalCaseCount={CASE_ORDER.length} />
+    <StageFocusManager stage={state.stage}>
+      {renderStage(state.stage, activeCase, callbacks)}
+    </StageFocusManager>
     <UpdateHistoryButton ref={updateHistoryTriggerRef} onOpen={openUpdateHistory} />
     {isUpdateHistoryOpen ? <UpdateHistoryDialog entries={UPDATE_HISTORY} onClose={closeUpdateHistory} returnFocusRef={updateHistoryTriggerRef} /> : null}
   </>
@@ -137,7 +141,7 @@ function renderStage(stage: LabStage, activeCase: AppCase | null, callbacks: Sta
 function RevocationReadyScreen({ onOpenRevocation }: { onOpenRevocation: () => void }): ReactElement {
   return (
     <main>
-      <h2>네 사례를 모두 완료했습니다</h2>
+      <h2 data-stage-heading tabIndex={-1}>네 사례를 모두 완료했습니다</h2>
       <p>이제 가상 사용 기록을 살펴보고, 필요하지 않은 권한을 철회하는 연습을 시작할 수 있습니다.</p>
       <PrimaryActionButton pulse stepNumber={6} onClick={onOpenRevocation}>
         권한 철회 연습 시작
@@ -156,12 +160,12 @@ function assertNever(value: never): never {
 }
 
 function CaseRecoveryScreen({ onRecover }: { onRecover: () => void }): ReactElement {
-  return <main><h2>사례를 다시 선택해 주세요</h2><p>선택한 사례를 확인할 수 없습니다. 시작 화면으로 돌아가 사례를 다시 선택하세요.</p><button type="button" onClick={onRecover}>사례 선택으로 돌아가기</button></main>
+  return <main><h2 data-stage-heading tabIndex={-1}>사례를 다시 선택해 주세요</h2><p>선택한 사례를 확인할 수 없습니다. 시작 화면으로 돌아가 사례를 다시 선택하세요.</p><button type="button" onClick={onRecover}>사례 선택으로 돌아가기</button></main>
 }
 
 function ReportRecoveryScreen({ onRecover }: { onRecover: () => void }): ReactElement {
   const handleRecover = () => {
     if (window.confirm('학습 기록이 완전하지 않습니다. 지금 기록을 지우고 처음부터 다시 시작하시겠습니까?')) onRecover()
   }
-  return <main><h2>보고서를 만들 수 없습니다</h2><p>학습 기록이 완전하지 않아 보고서를 표시할 수 없습니다. 기록을 지우고 처음부터 다시 시작해 주세요.</p><button type="button" onClick={handleRecover}>처음부터 다시 하기</button></main>
+  return <main><h2 data-stage-heading tabIndex={-1}>보고서를 만들 수 없습니다</h2><p>학습 기록이 완전하지 않아 보고서를 표시할 수 없습니다. 기록을 지우고 처음부터 다시 시작해 주세요.</p><button type="button" onClick={handleRecover}>처음부터 다시 하기</button></main>
 }
