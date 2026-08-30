@@ -40,6 +40,10 @@ function toImpact(state = createInitialLabState()): LabState {
 }
 
 describe('labReducer', () => {
+  it('starts with a storage boundary that matches the opt-in choice', () => {
+    expect(createInitialLabState().statusMessage).toBe('이 앱은 실제 권한을 요청하지 않으며, 개인정보를 입력하지 않습니다. 저장은 직접 선택합니다.')
+  })
+
   it('starts with four empty cases and no personal data', () => {
     const state = createInitialLabState()
     expect(state.stage).toBe('start')

@@ -29,7 +29,7 @@ const STAGE_NUMBERS: Readonly<Record<LabStage, number>> = {
 
 export default function ProgressIndicator({ stage, completedCaseCount, totalCaseCount }: ProgressIndicatorProps): ReactElement {
   return (
-    <p role="status" aria-live="polite" aria-atomic="true">
+    <p className="progress-indicator" role="status" aria-live="polite" aria-atomic="true">
       현재 단계: {STAGE_NUMBERS[stage]}/7 · {STAGE_LABELS[stage]} · 완료한 사례: {completedCaseCount}/{totalCaseCount}
     </p>
   )

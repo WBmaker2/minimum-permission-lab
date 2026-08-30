@@ -73,13 +73,21 @@ describe('UPDATE_HISTORY', () => {
 
   it('records the current learner usability scope without claiming a manual screen-reader run', () => {
     expect(UPDATE_HISTORY[0]).toEqual({
-      date: '2026-08-28',
+      date: '2026-08-30',
       category: '개선',
-      summary: '모바일·키보드·보조기술 대응 구조와 저장 경계 보강',
-      reason: '320px·375px 모바일 카드, 키보드 단계 포커스, 모션 감소 대체와 저장 동의(opt-in) 경계를 보강하고 자동 의미 구조를 확인함; VoiceOver·TalkBack 수동 실행 결과는 포함하지 않음',
+      summary: '첫 화면 위계와 상호작용 피드백 다듬기',
+      reason: '제목·진행·가상 모델 안내를 한 번씩 읽도록 정리하고, 조건 힌트·보조 버튼·누름 상태·모션 감소 대체를 더 분명하게 다듬음; 자동 키보드·모바일 흐름은 확인했지만 VoiceOver·TalkBack 수동 실행은 포함하지 않음',
     })
     expect(UPDATE_HISTORY[0].summary).not.toContain('스크린 리더 검증 완료')
     expect(UPDATE_HISTORY[0].reason).not.toContain('스크린 리더 검증 완료')
+    expect(UPDATE_HISTORY[1]).toEqual({
+      date: '2026-08-29',
+      category: '개선',
+      summary: '첫 행동·단계 안내·결과 다음 행동 정리',
+      reason: '사례 선택을 앞에 배치하고 단계 제목 포커스·스크롤, 조건 안내, 결과 다음 행동을 보강함; 자동 키보드·모바일 구조 검증을 기록하고 VoiceOver·TalkBack 수동 실행은 포함하지 않음',
+    })
+    expect(UPDATE_HISTORY[1].summary).not.toContain('스크린 리더 검증 완료')
+    expect(UPDATE_HISTORY[1].reason).not.toContain('스크린 리더 검증 완료')
   })
 
   it('records the Task16 completion-summary improvement entry', () => {

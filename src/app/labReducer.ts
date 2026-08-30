@@ -118,7 +118,7 @@ export function createInitialLabState(): LabState {
     revocationCompleted: false,
     revocationDecisions: {},
     saveOnDevice: false,
-    statusMessage: '이 앱은 실제 권한을 요청하지 않으며, 개인정보를 입력하거나 저장하지 않습니다.',
+    statusMessage: '이 앱은 실제 권한을 요청하지 않으며, 개인정보를 입력하지 않습니다. 저장은 직접 선택합니다.',
   }
 }
 

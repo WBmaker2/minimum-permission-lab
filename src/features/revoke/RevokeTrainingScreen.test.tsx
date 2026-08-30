@@ -57,6 +57,17 @@ describe('RevokeTrainingScreen', () => {
     expect(PERMISSION_USE_LOG_ENTRIES).toHaveLength(4)
   })
 
+  it('explains the disabled completion action and links the hint', () => {
+    renderActivity()
+
+    const complete = screen.getByRole('button', { name: '철회 판단 완료' })
+    const hint = screen.getByRole('note')
+
+    expect(complete).toBeDisabled()
+    expect(hint).toHaveTextContent('0/4')
+    expect(complete).toHaveAttribute('aria-describedby', hint.id)
+  })
+
   it('uses controlled native radios and announces the virtual decision context', async () => {
     const user = userEvent.setup()
     const onDecision = vi.fn()

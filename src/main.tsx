@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import './styles/tokens.css'
 import './styles/global.css'
 import './styles/components.css'
+import './styles/interactive.css'
 import './styles/print.css'
 import App from './app/App'
 

@@ -14,6 +14,8 @@ import type {
 } from '../../domain/model'
 import ConditionalScenarioCard from './ConditionalScenarioCard'
 import FunctionImpactList from './FunctionImpactList'
+import ActionRequirementHint from '../../components/ActionRequirementHint'
+import { getImpactRequirementMessage } from './impactProgress'
 
 export interface ImpactScreenProps {
   appCase: AppCase
@@ -33,6 +35,7 @@ export default function ImpactScreen({
   onBeginRevision,
 }: ImpactScreenProps): ReactElement {
   const titleId = `${useId()}-impact-title`
+  const actionRequirementId = `${useId()}-impact-action-requirement`
   const [statusMessage, setStatusMessage] = useState('')
   const impacts = useMemo(
     () => buildFunctionImpacts(appCase, progress.initialDecisions, progress.enabledFeatureSwitchIds, progress.acknowledgedConditionIds),
@@ -42,6 +45,15 @@ export default function ImpactScreen({
     .map((scenarioId) => CONDITIONAL_SCENARIOS[scenarioId])
     .filter((scenario) => scenario.caseId === appCase.id)
   const ready = progress.controlAction !== null && areCaseConditionsSatisfied(appCase.id, progress)
+  const acknowledgedConditionCount = scenarios.filter((scenario) => progress.acknowledgedConditionIds.includes(scenario.id)).length
+  const hasDisabledFeatureSwitch = scenarios.some((scenario) => scenario.featureSwitchId !== undefined && !progress.enabledFeatureSwitchIds.includes(scenario.featureSwitchId))
+  const requirementMessage = getImpactRequirementMessage({
+    conditionCount: scenarios.length,
+    acknowledgedConditionCount,
+    conditionsSatisfied: areCaseConditionsSatisfied(appCase.id, progress),
+    hasDisabledFeatureSwitch,
+    controlAction: progress.controlAction,
+  })
 
   const handleSwitchChange = (caseId: CaseId, switchId: FeatureSwitchId, enabled: boolean) => {
     onFeatureSwitchChange(caseId, switchId, enabled)
@@ -52,6 +64,11 @@ export default function ImpactScreen({
     if (progress.acknowledgedConditionIds.includes(conditionId)) return
     onAcknowledgeCondition(caseId, conditionId)
     setStatusMessage('조건 비교를 확인했습니다. 수정 권한안을 준비할 수 있습니다.')
+  }
+
+  const handleControlActionChange = (action: 'alternative' | 'revoke') => {
+    onControlActionChange(appCase.id, action)
+    setStatusMessage(`${action === 'alternative' ? '대안 사용' : '권한 철회'} 방향을 골랐습니다. 조건 비교를 모두 확인하면 다음 단계로 갈 수 있습니다.`)
   }
 
   return (
@@ -84,7 +101,7 @@ export default function ImpactScreen({
             name="impact-control-action"
             value="alternative"
             checked={progress.controlAction === 'alternative'}
-            onChange={() => onControlActionChange(appCase.id, 'alternative')}
+            onChange={() => handleControlActionChange('alternative')}
           />
           대안 사용
         </label>
@@ -94,12 +111,13 @@ export default function ImpactScreen({
             name="impact-control-action"
             value="revoke"
             checked={progress.controlAction === 'revoke'}
-            onChange={() => onControlActionChange(appCase.id, 'revoke')}
+            onChange={() => handleControlActionChange('revoke')}
           />
           권한 철회
         </label>
       </fieldset>
-      <PrimaryActionButton pulse={ready} stepNumber={4} disabled={!ready} onClick={onBeginRevision}>
+      {!ready && <ActionRequirementHint id={actionRequirementId} message={requirementMessage} />}
+      <PrimaryActionButton pulse={ready} stepNumber={4} disabled={!ready} aria-describedby={!ready ? actionRequirementId : undefined} onClick={onBeginRevision}>
         최소 권한안 수정
       </PrimaryActionButton>
     </main>

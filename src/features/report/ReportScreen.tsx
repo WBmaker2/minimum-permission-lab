@@ -46,11 +46,16 @@ export default function ReportScreen({ report, onPrint, onReset }: ReportScreenP
           return <li key={permissionId}><PermissionGlyph permissionId={permissionId} /><span>{definition.label}</span><span aria-hidden="true"> · 모양: {definition.shapeLabel}</span><span> · 권한 철회</span></li>
         })}</ul> : <p>철회한 권한 없음</p>}
       </section>
-      <p role="status" aria-live="polite" className="report-status">{statusMessage}</p>
-      <div>
-        <button type="button" onClick={() => { onPrint(); setStatusMessage('보고서를 인쇄하도록 요청했습니다.') }}>보고서 인쇄</button>
-        <button type="button" onClick={reset}>처음부터 다시 하기</button>
-      </div>
+      <section className="report-next-actions" aria-labelledby="report-next-actions-title">
+        <h3 id="report-next-actions-title">다음 학습 행동</h3>
+        <p><strong>인쇄해 수업에서 함께 돌아보기:</strong> 처음 선택과 수정 선택을 비교하며 이유를 설명해 보세요.</p>
+        <p><strong>다시 시작해 다른 사례를 연습하기:</strong> 다른 기능에서도 필요한 권한만 남길 수 있는지 살펴보세요.</p>
+        <div className="report-next-actions__buttons">
+          <button type="button" onClick={() => { onPrint(); setStatusMessage('보고서를 인쇄하도록 요청했습니다.') }}>보고서 인쇄</button>
+          <button type="button" onClick={reset}>처음부터 다시 하기</button>
+        </div>
+        <p role="status" aria-live="polite" className="report-status">{statusMessage}</p>
+      </section>
     </main>
   )
 }

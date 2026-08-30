@@ -78,6 +78,16 @@ describe('ReportScreen', () => {
     expect(screen.queryByRole('button', { name: /추천|점수/ })).not.toBeInTheDocument()
   })
 
+  it('explains the next learning action beside the report controls', () => {
+    render(<ReportScreen report={report()} onPrint={vi.fn()} onReset={vi.fn()} />)
+    const nextActions = screen.getByRole('region', { name: '다음 학습 행동' })
+    expect(within(nextActions).getByRole('heading', { level: 3, name: '다음 학습 행동' })).toBeVisible()
+    expect(within(nextActions).getByText(/인쇄해 수업에서 함께 돌아보기/)).toBeVisible()
+    expect(within(nextActions).getByText(/다시 시작해 다른 사례를 연습하기/)).toBeVisible()
+    expect(within(nextActions).getByRole('button', { name: '보고서 인쇄' })).toBeVisible()
+    expect(within(nextActions).getByRole('button', { name: '처음부터 다시 하기' })).toBeVisible()
+  })
+
   it('shows changed marker with text and shape', () => {
     const built = report()
     const first = built.cases[0]
