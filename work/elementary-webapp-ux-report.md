@@ -152,8 +152,16 @@
 1. 교사 동석 하에 실제 초등 학습자 세션을 보호된 절차와 동의 범위로 관찰하고, 막힘·오해 문장을 기록합니다.
 2. 필요할 때 실제 보조기술 수동 점검을 별도 수행하되, 그 결과가 생기기 전까지 접근성 인증을 주장하지 않습니다.
 3. Playwright 브라우저 바이너리가 제공되는 CI 또는 격리된 환경에서 `desktop-chromium`, `mobile-375`, privacy E2E를 다시 실행합니다.
-4. 릴리스가 필요하면 이 변경을 검토한 뒤 별도 승인으로 commit·push·배포·공개 URL 검증을 진행합니다. 이번 UX 점검에서는 release action을 실행하지 않았습니다.
+4. 이번 변경은 아래 Release evidence처럼 명시적 승인 후 이미 commit·push·배포·공개 URL 검증을 완료했습니다. 다음 릴리스에서도 같은 게이트와 공개 learner path 확인을 반복합니다.
 
 ## 공개 주소 참고
 
-기존 배포를 확인할 때 사용할 수 있는 주소는 [Minimum Permission Lab](https://wbmaker2.github.io/minimum-permission-lab/)입니다. 이 URL은 이번 점검 턴에 새로 배포한 결과가 아니며, 현재 변경 사항의 공개 반영을 의미하지 않습니다.
+현재 배포를 확인할 수 있는 주소는 [Minimum Permission Lab](https://wbmaker2.github.io/minimum-permission-lab/)입니다.
+
+## Release evidence
+
+- Release PR: [#3 feat: improve elementary learner flow](https://github.com/WBmaker2/minimum-permission-lab/pull/3), merged 2026-08-30.
+- `main` merge commit: `24026a8e17fd0017f97ea45c24e4729b5f48c408`.
+- GitHub Pages workflow: [33311957285](https://github.com/WBmaker2/minimum-permission-lab/actions/runs/33311957285), success; lint, policy/unit tests, production build, artifact upload, and Pages deploy all passed.
+- Public verification: HTTP 200, title `앱 권한 최소허용 연구소`, JS/CSS assets 200, 320px·375px first-case bounds and no horizontal overflow, header details 0, latest update history present, external requests 0, console errors 0.
+- The public URL now reflects the merged learner UX improvements. VoiceOver/TalkBack and real student sessions remain separate evidence states.
