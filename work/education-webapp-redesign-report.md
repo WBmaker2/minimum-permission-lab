@@ -96,4 +96,13 @@
 
 - `$impeccable`, `$ui-ux-pro-max`, `$redesign-existing-projects`, `$imagegen`은 현재 세션에서 확인 가능한 지원 역할이며 필수 문서를 읽었습니다. 이미지 자산이 없어 `$imagegen`은 호출하지 않았습니다.
 - 실제 초등학생 참여 세션, 교사 관찰, VoiceOver/TalkBack 수동 검증, WebKit 실행 환경 확보는 후속 단계입니다. 자동 결과는 사람의 사용성·보조공학 승인을 의미하지 않습니다.
-- 커밋, 푸시, 릴리스, 배포, HVC 등록은 이번 요청에서 실행하지 않았습니다.
+- 리디자인 재실행 당시에는 커밋·푸시·릴리스를 실행하지 않았고, 이후 사용자 요청으로 별도 릴리스 절차를 진행했습니다. HVC 등록은 실행하지 않았습니다.
+
+## 2026-08-30 배포 결과
+
+- 기능·스타일·문서 커밋: `1c83b93`, `4ebccc5`, `c0db235`.
+- PR: [#1](https://github.com/WBmaker2/minimum-permission-lab/pull/1), 병합 커밋 `016e052a159ba1ec4320bc19ee1556252021b3e8`.
+- Pages Actions: [run 33292333226](https://github.com/WBmaker2/minimum-permission-lab/actions/runs/33292333226) — lint, 정책·단위 테스트, production build, artifact upload, deploy 모두 성공.
+- 공개 학습 앱: [https://wbmaker2.github.io/minimum-permission-lab/](https://wbmaker2.github.io/minimum-permission-lab/).
+- 공개 검증: HTTP 200, `앱 권한 최소허용 연구소` 제목, 최신 JS/CSS, 375px 시작 화면과 사례 선택→기능 명세 진입을 확인했습니다. 공개 smoke 중 외부 요청은 0건이었고 초기 localStorage 키는 빈 배열이었습니다.
+- 남은 단계: 실제 초등학생·교사 관찰, VoiceOver/TalkBack, WebKit 실행 파일 확보. 자동 검증 결과를 사람의 승인으로 표현하지 않습니다.
