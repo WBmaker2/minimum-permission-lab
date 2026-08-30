@@ -210,4 +210,12 @@
 
 ### 현재 남은 증거 단계
 
-기능 구현과 scoped QA는 완료했습니다. 실제 초등 학습자 세션, 교사 동석 관찰, VoiceOver/TalkBack, CI 브라우저 바이너리에서의 Playwright 실행은 별도 증거 단계입니다. 이번 턴에는 커밋·푸시·배포를 실행하지 않았습니다.
+기능 구현과 scoped QA는 완료했습니다. 실제 초등 학습자 세션, 교사 동석 관찰, VoiceOver/TalkBack, CI 브라우저 바이너리에서의 Playwright 실행은 별도 증거 단계입니다. 이번 scoped 변경은 커밋·푸시·배포까지 완료했으며, 아래 릴리스 증거와 공개 URL을 확인했습니다.
+
+### Scoped release evidence — language and simulation (2026-08-31)
+
+- 기능 커밋: `ee7442673b37f7ac3c689bbfa1e745bf9b7ac534` (`feat: add elementary language and simulation learning flow`), `main`에 push 완료.
+- Pages workflow: [33339943038](https://github.com/WBmaker2/minimum-permission-lab/actions/runs/33339943038) 성공. lint, unit/policy tests, production build, Pages artifact upload, Pages deploy를 모두 통과했습니다.
+- 공개 주소: [Minimum Permission Lab](https://wbmaker2.github.io/minimum-permission-lab/).
+- 공개 확인: HTTP 200, 제목 `앱 권한 최소허용 연구소`, HTML이 참조하는 JS·CSS asset 각각 HTTP 200, 시작 화면에서 사례 선택·기능 명세·권한 심사 경로가 정상 표시되었습니다.
+- 로컬 CLI Playwright는 브라우저 바이너리 부재로 실행 전 차단되었고, 이를 공개 E2E 통과로 주장하지 않습니다. VoiceOver/TalkBack과 실제 초등 학습자 세션도 별도 증거 단계입니다.
