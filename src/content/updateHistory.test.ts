@@ -75,8 +75,8 @@ describe('UPDATE_HISTORY', () => {
     expect(UPDATE_HISTORY[0]).toEqual({
       date: '2026-08-30',
       category: '개선',
-      summary: '첫 화면 위계와 상호작용 피드백 다듬기',
-      reason: '제목·진행·가상 모델 안내를 한 번씩 읽도록 정리하고, 조건 힌트·보조 버튼·누름 상태·모션 감소 대체를 더 분명하게 다듬음; 자동 키보드·모바일 흐름은 확인했지만 VoiceOver·TalkBack 수동 실행은 포함하지 않음',
+      summary: '초등 학습자 첫 행동과 키보드 순서 개선',
+      reason: '헤더 중복 상세를 줄이고 사례를 고른 뒤 다음 버튼으로 포커스를 옮겼으며, 320px·375px 모바일 시작 화면의 세로 간격을 다듬음; 자동 키보드·모바일·모션 감소 흐름은 확인했지만 실제 학생 세션과 VoiceOver·TalkBack 수동 실행은 포함하지 않음',
     })
     expect(UPDATE_HISTORY[0].summary).not.toContain('스크린 리더 검증 완료')
     expect(UPDATE_HISTORY[0].reason).not.toContain('스크린 리더 검증 완료')

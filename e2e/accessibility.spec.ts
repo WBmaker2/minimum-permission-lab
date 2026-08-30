@@ -113,6 +113,14 @@ test('checks every learner stage, live status, focus, labels, and history dialog
   await expect(nextActions).toContainText('다시 시작해 다른 사례를 연습하기')
 })
 
+test('starts keyboard progression on the first learner case action', async ({ page }) => {
+  await page.goto('/')
+  const heading = page.locator('h2[data-stage-heading]').first()
+  await expect(heading).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('button', { name: '사진 스캔 과제함', exact: true })).toBeFocused()
+})
+
 test('completes all cases, both conditional comparisons, revocation, history, and report with keyboard helper', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: '업데이트 내역', exact: true }).press('Enter')

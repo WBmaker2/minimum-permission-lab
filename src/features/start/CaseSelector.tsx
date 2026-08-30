@@ -16,7 +16,7 @@ export default function CaseSelector({
   return (
     <section className="case-selector" aria-labelledby="case-selector-title">
       <h2 id="case-selector-title">사례 선택</h2>
-      <p className="case-selector__prompt">네 가지 중 하나를 골라 어떤 권한이 필요한지 살펴봅니다.</p>
+      <p className="case-selector__prompt">사례를 골라 권한을 살펴봅니다.</p>
       <div className="case-selector__grid" role="list">
         {CASE_ORDER.map((caseId) => {
           const appCase = APP_CASES[caseId]

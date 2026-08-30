@@ -30,17 +30,13 @@ describe('learning safety notices', () => {
     expect(LEARNING_MODEL_DETAILS).toContain('가상 별명과 실제 개인정보는 수집하지 않습니다')
   })
 
-  it('renders the compact summary first and keeps storage details behind native disclosure', async () => {
-    const user = userEvent.setup()
+  it('renders one compact non-interactive header summary', () => {
     render(createElement(LearningModelNotice))
     expect(screen.getByText(LEARNING_MODEL_SUMMARY)).toBeVisible()
-    const details = screen.getByText('자세히 보기').closest('details') as HTMLDetailsElement
-    expect(details).toBeInTheDocument()
-    expect(details.open).toBe(false)
-    expect(screen.queryByText(LEARNING_MODEL_DETAILS)).not.toBeVisible()
-    await user.click(screen.getByText('자세히 보기'))
-    expect(details.open).toBe(true)
-    expect(screen.getByText(LEARNING_MODEL_DETAILS)).toBeVisible()
+    const notice = screen.getByRole('note')
+    expect(notice.querySelector('details')).toBeNull()
+    expect(notice.querySelector('summary')).toBeNull()
+    expect(screen.queryByText(LEARNING_MODEL_DETAILS)).not.toBeInTheDocument()
   })
 
   it('states that judgments belong to a virtual learning model', () => {

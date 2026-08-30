@@ -15,6 +15,35 @@ test.describe('375px reduced-motion learner flow', () => {
     expect(bottom).toBeLessThanOrEqual(viewportHeight)
   }
 
+  test('moves focus to the next action after a case selection', async ({ page }) => {
+    test.skip(test.info().project.name !== 'mobile-375', '375px assertions run in the mobile-375 project')
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/')
+    const specificationButton = page.getByRole('button', { name: '기능 명세 보기', exact: true })
+    await page.getByRole('button', { name: '사진 스캔 과제함', exact: true }).press('Space')
+    await expect(specificationButton).toBeFocused()
+    await expect(specificationButton).toBeVisible()
+    await expect(specificationButton).toBeEnabled()
+    const box = await specificationButton.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.bottom).toBeLessThanOrEqual(await page.evaluate(() => window.innerHeight))
+  })
+
+  test('shows the first case action inside the initial narrow viewport', async ({ page }) => {
+    test.skip(test.info().project.name !== 'mobile-375', 'narrow viewport assertions run in the mobile-375 project')
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    for (const [width, height] of [[320, 800], [375, 812]] as const) {
+      await page.setViewportSize({ width, height })
+      await page.goto('/')
+      const caseButton = page.getByRole('button', { name: '사진 스캔 과제함', exact: true })
+      await expect(caseButton).toBeVisible()
+      const box = await caseButton.boundingBox()
+      expect(box).not.toBeNull()
+      expect(box!.top).toBeGreaterThanOrEqual(0)
+      expect(box!.bottom).toBeLessThanOrEqual(height)
+    }
+  })
+
   test('completes the full flow without overflow or covered primary controls', async ({ page }) => {
     test.skip(test.info().project.name !== 'mobile-375', '375px assertions run in the mobile-375 project')
     await page.emulateMedia({ reducedMotion: 'reduce' })

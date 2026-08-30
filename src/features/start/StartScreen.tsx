@@ -1,4 +1,4 @@
-import { useId, type ReactElement } from 'react'
+import { useEffect, useId, useRef, type ReactElement } from 'react'
 import {
   HELP_REQUEST_NOTICE,
   NOT_IN_SCOPE_NOTICE,
@@ -30,9 +30,23 @@ export default function StartScreen({
   onClearSavedProgress,
 }: StartScreenProps): ReactElement {
   const clearHintId = `${useId()}-clear-storage-hint`
+  const primaryActionRef = useRef<HTMLButtonElement>(null)
+  const pendingSelectionRef = useRef(false)
   const completedCaseIds = Object.entries(state.caseProgress)
     .filter(([caseId, progress]) => isCaseProgressComplete(caseId as CaseId, progress))
     .map(([caseId]) => caseId as CaseId)
+
+  const handleCaseSelect = (caseId: CaseId) => {
+    pendingSelectionRef.current = true
+    onSelectCase(caseId)
+  }
+
+  useEffect(() => {
+    if (!pendingSelectionRef.current || state.activeCaseId === null) return
+    pendingSelectionRef.current = false
+    if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
+    primaryActionRef.current?.focus()
+  }, [state.activeCaseId])
 
   return (
     <main>
@@ -45,9 +59,10 @@ export default function StartScreen({
       <CaseSelector
         completedCaseIds={completedCaseIds}
         selectedCaseId={state.activeCaseId}
-        onSelect={onSelectCase}
+        onSelect={handleCaseSelect}
       />
       <PrimaryActionButton
+        ref={primaryActionRef}
         pulse={state.activeCaseId !== null}
         stepNumber={1}
         disabled={state.activeCaseId === null}
