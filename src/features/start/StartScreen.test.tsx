@@ -72,6 +72,7 @@ describe('StartScreen', () => {
     expect(selectedStart).toHaveClass('gi-pulse')
     expect(view.container.querySelectorAll('.gi-pulse')).toHaveLength(1)
     expect(selectedStart.querySelector('.gi-pulse__step')?.textContent).toBe('단계 1')
+    expect(selectedStart).toHaveFocus()
   })
 
   it('controls explicit save/load actions and selected state', async () => {
@@ -94,7 +95,7 @@ describe('StartScreen', () => {
   it('makes secondary storage actions visually subordinate and keeps the first prompt consistent', () => {
     render(<StartScreen {...props()} />)
 
-    expect(screen.getByText('먼저 네 가지 사례 중 하나를 골라 학습을 시작해 보세요.')).toBeVisible()
+    expect(screen.getByText('사례를 골라 시작해 보세요.')).toBeVisible()
     expect(screen.getByRole('button', { name: '이 기기에 저장한 기록 불러오기' })).toHaveClass('secondary-action')
     expect(screen.getByRole('button', { name: '저장 기록 지우기' })).toHaveClass('destructive-action')
   })
