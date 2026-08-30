@@ -4,11 +4,13 @@ import {
   NOT_IN_SCOPE_NOTICE,
   TEACHER_GUIDE_NOTICE,
 } from '../../content/learningNotices'
+import { CASE_ORDER } from '../../content/cases'
 import type { CaseId, LabState } from '../../domain/model'
 import PrimaryActionButton from '../../components/PrimaryActionButton'
 import CaseSelector from './CaseSelector'
 import { isCaseProgressComplete } from '../../app/labSelectors'
 import ActionRequirementHint from '../../components/ActionRequirementHint'
+import LearningOverview from './LearningOverview'
 
 export interface StartScreenProps {
   state: LabState
@@ -35,20 +37,11 @@ export default function StartScreen({
   return (
     <main>
       <h2 data-stage-heading tabIndex={-1}>학습 시작</h2>
-      <section aria-labelledby="learning-goal-title">
-        <h3 id="learning-goal-title">학습 목표</h3>
-        <p>기능 설명과 비교해 필요한 권한만 최소한으로 허용하고, 거부·대안·철회 이유를 생각하는 활동입니다. 무조건 거부하는 활동이 아닙니다.</p>
-      </section>
-      <section aria-labelledby="learning-boundary-title">
-        <h3 id="learning-boundary-title">학습 범위와 안전</h3>
-        <p>이 활동은 가상 학습 모델이며 실제 앱 판정이 아님을 알려 드립니다. 실제 권한을 묻지 않습니다.</p>
-        <p>{NOT_IN_SCOPE_NOTICE}</p>
-        <details>
-          <summary>교사용 안내</summary>
-          <p>{TEACHER_GUIDE_NOTICE}</p>
-          <p>{HELP_REQUEST_NOTICE}</p>
-        </details>
-      </section>
+      <LearningOverview
+        selectedCase={state.activeCaseId !== null}
+        completedCaseCount={completedCaseIds.length}
+        totalCaseCount={CASE_ORDER.length}
+      />
       <CaseSelector
         completedCaseIds={completedCaseIds}
         selectedCaseId={state.activeCaseId}
@@ -62,9 +55,23 @@ export default function StartScreen({
       >
         기능 명세 보기
       </PrimaryActionButton>
-      <section aria-labelledby="save-title">
+      <section className="start-safety" aria-labelledby="learning-boundary-title">
+        <h3 id="learning-boundary-title">학습 범위와 안전</h3>
+        <p className="start-safety-summary">실제 권한 없음 · 개인정보 입력 금지 · 저장은 직접 선택합니다.</p>
+        <p>이 활동은 가상 학습 모델이며 실제 앱 판정이 아님을 알려 드립니다. 실제 권한을 묻지 않습니다.</p>
+        <details className="start-details">
+          <summary>학습 범위와 안전 더 보기</summary>
+          <p>{NOT_IN_SCOPE_NOTICE}</p>
+          <details>
+            <summary>교사용 안내</summary>
+            <p>{TEACHER_GUIDE_NOTICE}</p>
+            <p>{HELP_REQUEST_NOTICE}</p>
+          </details>
+        </details>
+      </section>
+      <section className="start-storage" aria-labelledby="save-title">
         <h3 id="save-title">학습 기록</h3>
-        <label>
+        <label className="storage-choice">
           <input
             type="checkbox"
             name="saveOnDevice"
@@ -78,11 +85,16 @@ export default function StartScreen({
         ) : (
           <p>공용 기기에서는 저장하지 않고 사용 후 기록을 삭제하세요.</p>
         )}
-        <button type="button" onClick={onLoadSavedProgress}>
+        <details className="start-details">
+          <summary>저장 범위와 삭제 방법</summary>
+          <p>저장에 동의하면 권한 선택과 근거 원문이 이 기기에 남을 수 있습니다. 별명과 실제 개인정보는 입력하지 마세요.</p>
+          <p>공용 기기에서는 저장을 끄고, 아래의 저장 기록 지우기 버튼을 눌러 학습 기록을 삭제하세요.</p>
+        </details>
+        <button className="secondary-action" type="button" onClick={onLoadSavedProgress}>
           이 기기에 저장한 기록 불러오기
         </button>
         <ActionRequirementHint id={clearHintId} message="이 앱의 전용 학습 기록만 지우며 다른 저장 정보는 건드리지 않습니다." />
-        <button type="button" aria-describedby={clearHintId} onClick={onClearSavedProgress}>
+        <button className="destructive-action" type="button" aria-describedby={clearHintId} onClick={onClearSavedProgress}>
           저장 기록 지우기
         </button>
       </section>

@@ -24,6 +24,16 @@ describe('App smoke shell', () => {
     expect(screen.getByText('가상 학습 모델')).toBeVisible()
   })
 
+  it('keeps the header hierarchy compact and names the model notice once', () => {
+    render(<App />)
+
+    const header = screen.getByRole('banner')
+    expect(header.querySelector('.app-header__bar')).not.toBeNull()
+    expect(header.querySelector('.progress-indicator')).not.toBeNull()
+    expect(header.querySelectorAll('.learning-model-notice__title')).toHaveLength(1)
+    expect(header.querySelector('.learning-model-notice')).not.toBeNull()
+  })
+
   it('routes case selection to specification and then initial review', async () => {
     const user = userEvent.setup()
     render(<App />)

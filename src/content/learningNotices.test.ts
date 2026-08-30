@@ -107,7 +107,7 @@ describe('learning safety notices', () => {
     expect(screen.getByText(/AI나 키워드로 채점하지 않/)).toBeVisible()
   })
 
-  it('renders safety boundaries visibly on StartScreen and reveals teacher guidance on request', async () => {
+  it('renders a compact safety summary and reveals details on request', async () => {
     const user = userEvent.setup()
     render(createElement(StartScreen, {
       state: createInitialLabState(),
@@ -120,14 +120,19 @@ describe('learning safety notices', () => {
 
     const boundary = screen.getByRole('heading', { name: '학습 범위와 안전' }).parentElement
     expect(boundary).not.toBeNull()
-    const visibleBoundaryParagraphs = [...boundary!.querySelectorAll(':scope > p')]
-    const modelNotice = visibleBoundaryParagraphs.find((paragraph) => paragraph.textContent?.includes('가상 학습 모델이며 실제 앱 판정이 아님'))
-    const securityBoundary = visibleBoundaryParagraphs.find((paragraph) => paragraph.textContent?.includes('실제 앱의 안전성을 판정하는 보안 도구가 아님'))
+    expect(screen.getByText('실제 권한 없음 · 개인정보 입력 금지 · 저장은 직접 선택합니다.')).toBeVisible()
+    const modelNotice = [...boundary!.querySelectorAll(':scope > p')]
+      .find((paragraph) => paragraph.textContent?.includes('가상 학습 모델이며 실제 앱 판정이 아님'))
     expect(modelNotice).toBeDefined()
-    expect(securityBoundary).toBeDefined()
     expect(getComputedStyle(modelNotice!).display).not.toBe('none')
-    expect(getComputedStyle(securityBoundary!).display).not.toBe('none')
+    const safetySummary = screen.getByText('학습 범위와 안전 더 보기')
+    const safetyDetails = safetySummary.closest('details') as HTMLDetailsElement
+    expect(safetyDetails.open).toBe(false)
+    expect(screen.getByText(NOT_IN_SCOPE_NOTICE)).not.toBeVisible()
+    await user.click(safetySummary)
+    expect(screen.getByText(NOT_IN_SCOPE_NOTICE)).toBeVisible()
     const teacherSummary = screen.getByText('교사용 안내')
+    expect(teacherSummary).toBeVisible()
     await user.click(teacherSummary)
     const teacherDetails = teacherSummary.parentElement
     expect(teacherDetails?.tagName).toBe('DETAILS')

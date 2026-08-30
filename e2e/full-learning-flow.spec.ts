@@ -81,24 +81,41 @@ async function completeAllCases(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: '최소 권한 학습 보고서' })).toBeVisible()
   await expect(page.getByRole('heading', { name: '네 사례 완료 요약' })).toBeVisible()
   await expect(page.getByText('판단이 바뀐 것은 배움의 증거예요')).toBeVisible()
-  await expect(page.getByRole('table')).toHaveCount(4)
-  await expect(page.locator('table caption')).toHaveCount(4)
+  if ((page.viewportSize()?.width ?? 0) <= 640) {
+    await expect(page.locator('.decision-comparison-cards')).toHaveCount(4)
+    await expect(page.locator('.decision-comparison-cards').first()).toBeVisible()
+  } else {
+    await expect(page.getByRole('table')).toHaveCount(4)
+    await expect(page.locator('table caption')).toHaveCount(4)
+  }
   const reportCases = page.locator('[data-report-case]')
   await expect(reportCases).toHaveCount(4)
   for (let index = 0; index < 4; index += 1) {
-    await expect(reportCases.nth(index).getByRole('columnheader', { name: '최초 선택' })).toBeVisible()
-    await expect(reportCases.nth(index).getByRole('columnheader', { name: '수정 선택' })).toBeVisible()
-    await expect(reportCases.nth(index).getByText('근거 차원 확인')).toBeVisible()
-    for (const dimension of ['기능 연결', '정보 최소화', '사용자 통제', '다른 사람 존중']) {
-      await expect(reportCases.nth(index).getByText(dimension, { exact: true })).toBeVisible()
+    const reportCase = reportCases.nth(index)
+    if ((page.viewportSize()?.width ?? 0) <= 640) {
+      await expect(reportCase.locator('.decision-comparison-cards')).toBeVisible()
+      await expect(reportCase.locator('.decision-comparison-card')).toHaveCount(4)
+    } else {
+      await expect(reportCase.getByRole('columnheader', { name: '최초 선택' })).toBeVisible()
+      await expect(reportCase.getByRole('columnheader', { name: '수정 선택' })).toBeVisible()
     }
-    await expect(reportCases.nth(index).getByText(/다음 행동:/)).toBeVisible()
+    await expect(reportCase.getByText('근거 차원 확인')).toBeVisible()
+    for (const dimension of ['기능 연결', '정보 최소화', '사용자 통제', '다른 사람 존중']) {
+      await expect(reportCase.getByText(dimension, { exact: true })).toBeVisible()
+    }
+    await expect(reportCase.getByText(/다음 행동:/)).toBeVisible()
   }
-  await expect(page.getByText('◆ 판단 변경').first()).toBeVisible()
+  const changedMarker = (page.viewportSize()?.width ?? 0) <= 640
+    ? page.locator('.decision-comparison-cards').getByText('◆ 판단 변경').first()
+    : page.getByText('◆ 판단 변경').first()
+  await expect(changedMarker).toBeVisible()
   await expect(page.getByText('통제 후 허용')).toHaveCount(2)
   await expect(page.getByText('허용하지 않기')).toHaveCount(2)
   await expect(page.getByText('가상 학습 모델이며 실제 앱 판정이 아님', { exact: true })).toBeVisible()
   await expect(page.getByText(/실제 안전 판정이 아닙니다/)).toBeVisible()
+  const nextActions = page.getByRole('region', { name: '다음 학습 행동' })
+  await expect(nextActions).toContainText('인쇄해 수업에서 함께 돌아보기')
+  await expect(nextActions).toContainText('다시 시작해 다른 사례를 연습하기')
 }
 
 test('completes all four cases and keeps the default branch clean after reload', async ({ page }) => {

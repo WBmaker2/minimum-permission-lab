@@ -4,6 +4,8 @@ import StatusLiveRegion from '../../components/StatusLiveRegion'
 import { getPermissionDefinition } from '../../content/permissions'
 import type { PermissionId, RevocationDecision } from '../../domain/model'
 import PermissionUseLog, { PERMISSION_USE_LOG_ENTRIES } from './PermissionUseLog'
+import ActionRequirementHint from '../../components/ActionRequirementHint'
+import { getRevocationRequirementMessage } from './revocationProgress'
 
 export interface RevokeTrainingScreenProps {
   readonly eligible: boolean
@@ -50,6 +52,18 @@ export default function RevokeTrainingScreen({
   const ready = eligible && allValid && hasRevocation(decisions) && !revocationCompleted
   const reportReady = eligible && revocationCompleted && allValid && hasRevocation(decisions)
   const allKeep = eligible && allValid && !hasRevocation(decisions)
+  const selectedCount = PERMISSION_IDS.filter((permissionId) => decisions[permissionId]?.permissionId === permissionId && isRevocationAction(decisions[permissionId]?.action)).length
+  const revokedCount = PERMISSION_IDS.filter((permissionId) => decisions[permissionId]?.action === 'revoke-now').length
+  const actionRequirementId = 'revocation-complete-requirement'
+  const reportRequirementId = 'revocation-report-requirement'
+  const requirementMessage = getRevocationRequirementMessage({
+    eligible,
+    selectedCount,
+    totalCount: PERMISSION_IDS.length,
+    revokedCount,
+    revocationCompleted,
+    reportReady,
+  })
 
   const handleDecision = (decision: RevocationDecision) => {
     if (revocationCompleted) return
@@ -82,10 +96,13 @@ export default function RevokeTrainingScreen({
             </p>
           )}
           {revocationCompleted && <p>가상 철회 판단을 기록했습니다. 실제 기기 설정이나 권한은 바뀌지 않았습니다.</p>}
+          {!revocationCompleted && <ActionRequirementHint id={actionRequirementId} message={requirementMessage} />}
+          {revocationCompleted && !reportReady && <ActionRequirementHint id={reportRequirementId} message={requirementMessage} />}
           <PrimaryActionButton
             pulse={ready}
             stepNumber={6}
             disabled={!ready}
+            aria-describedby={!revocationCompleted && !ready ? actionRequirementId : undefined}
             onClick={onComplete}
           >
             철회 판단 완료
@@ -94,6 +111,7 @@ export default function RevokeTrainingScreen({
             pulse={reportReady}
             stepNumber={7}
             disabled={!reportReady}
+            aria-describedby={revocationCompleted && !reportReady ? reportRequirementId : undefined}
             onClick={onOpenReport}
           >
             학습 보고서 보기

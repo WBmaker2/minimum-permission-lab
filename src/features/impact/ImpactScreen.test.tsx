@@ -7,6 +7,7 @@ import { APP_CASES } from '../../content/cases'
 import { createInitialLabState, labReducer } from '../../app/labReducer'
 import type { CaseProgress, LabState } from '../../domain/model'
 import ImpactScreen from './ImpactScreen'
+import { getImpactRequirementMessage } from './impactProgress'
 
 afterEach(cleanup)
 
@@ -73,6 +74,23 @@ function renderControlledImpact(onBeginRevision = vi.fn()) {
 }
 
 describe('ImpactScreen', () => {
+  it('explains the remaining impact requirements through the disabled CTA', () => {
+    renderImpact()
+
+    const revisionButton = screen.getByRole('button', { name: '최소 권한안 수정' })
+    const hint = screen.getByText(/조건부 비교 0\/1/)
+
+    expect(revisionButton).toBeDisabled()
+    expect(hint).toHaveTextContent('조건부 비교 0/1')
+    expect(revisionButton).toHaveAttribute('aria-describedby', hint.id)
+  })
+
+  it('returns a concrete next action for every impact readiness state', () => {
+    expect(getImpactRequirementMessage({ conditionCount: 1, acknowledgedConditionCount: 0, conditionsSatisfied: false, hasDisabledFeatureSwitch: true, controlAction: null })).toContain('기능 스위치를 켠 뒤')
+    expect(getImpactRequirementMessage({ conditionCount: 1, acknowledgedConditionCount: 1, conditionsSatisfied: true, hasDisabledFeatureSwitch: false, controlAction: null })).toContain('대안 사용 또는 권한 철회')
+    expect(getImpactRequirementMessage({ conditionCount: 0, acknowledgedConditionCount: 0, conditionsSatisfied: true, hasDisabledFeatureSwitch: false, controlAction: 'alternative' })).toContain('준비되었습니다')
+  })
+
   it('shows available, limited, neutral feedback, evidence, and alternatives', () => {
     renderImpact()
     expect(screen.getByRole('heading', { level: 2, name: '기능 영향 시뮬레이션' })).toBeVisible()
