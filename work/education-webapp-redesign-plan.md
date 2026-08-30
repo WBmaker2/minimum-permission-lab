@@ -300,4 +300,11 @@ Create `work/education-webapp-redesign-report.md` after verification with:
 - 375px 전용 Chromium 직렬 실행: 10개 모두 통과. 320px/375px 가로폭, 키보드 포커스·스크롤, reduced-motion, 전체 학습 흐름, 저장·외부 요청 경계를 포함.
 - canonical `mobile-375` WebKit은 `/Users/kimhongnyeon/Library/Caches/ms-playwright/webkit-2336/pw_run.sh`가 없어 브라우저 시작 전 실패했으며 WebKit 통과로 주장하지 않음.
 - `imagegen`은 이미지 자산이 없어 호출하지 않았고, `public/favicon.svg`만 정체성 자산으로 유지.
-- 실제 초등학생 참여, 교사 관찰, VoiceOver/TalkBack 수동 실행은 별도 승인·환경이 필요해 보류. 이번 실행은 커밋·푸시·배포·HVC 등록을 수행하지 않음.
+- 실제 초등학생 참여, 교사 관찰, VoiceOver/TalkBack 수동 실행은 별도 승인·환경이 필요해 보류. 리디자인 재실행 당시에는 릴리스를 수행하지 않았고, 이후 사용자 요청에 따라 별도 릴리스 절차에서 커밋·푸시·Pages 배포를 완료했습니다. HVC 등록은 수행하지 않음.
+
+## 2026-08-30 배포 후 기록
+
+- 기능·스타일·문서 커밋을 `1c83b93`, `4ebccc5`, `c0db235`로 만들고 PR `#1`을 `main`에 병합했습니다. 병합 커밋은 `016e052a159ba1ec4320bc19ee1556252021b3e8`입니다.
+- GitHub Actions `Build and deploy to GitHub Pages` run `33292333226`이 lint, 정책·단위 테스트, production build, Pages deploy를 모두 성공시켰습니다.
+- 공개 주소: `https://wbmaker2.github.io/minimum-permission-lab/`. HTTP 200, 제목 `앱 권한 최소허용 연구소`, 최신 JS/CSS 자산과 375px 시작→사례→기능 명세 흐름을 확인했습니다. 공개 smoke에서 외부 요청은 0건이었습니다.
+- 실제 초등학생·교사 관찰, VoiceOver/TalkBack 수동 검증, WebKit 실행 파일 확보는 여전히 후속 단계이며, HVC 등록은 별도 요청 없이는 진행하지 않습니다.

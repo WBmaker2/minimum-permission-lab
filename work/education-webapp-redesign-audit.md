@@ -145,4 +145,12 @@
 ### 남은 단계와 판정
 
 - 실제 초등학생·교사 관찰, VoiceOver/TalkBack 수동 검증, WebKit 실행 환경 확보는 후속 단계입니다. 이 문서는 해당 사람·환경의 승인을 대신하지 않습니다.
-- 이번 실행에서는 커밋, 푸시, 릴리스, 배포, HVC 등록을 하지 않았습니다. 현재 판정은 “리디자인 구현 및 로컬/Chromium 검증 완료, 사람·WebKit 검증 보류”입니다.
+- 리디자인 재실행 당시에는 커밋·푸시·릴리스를 하지 않았지만, 이후 사용자 요청에 따라 PR `#1`을 `main`에 병합하고 Pages 배포를 완료했습니다. HVC 등록은 하지 않았습니다. 현재 판정은 “리디자인 및 공개 Pages 배포 완료, 사람·WebKit 검증 보류”입니다.
+
+## 2026-08-30 배포 검증
+
+- 병합 커밋: `016e052a159ba1ec4320bc19ee1556252021b3e8`.
+- Actions run: `33292333226` — lint, 정책·단위 테스트, build, Pages deploy 모두 성공.
+- 공개 URL: `https://wbmaker2.github.io/minimum-permission-lab/`.
+- 공개 smoke (375px Chromium): 제목·`학습 시작`·첫 행동 문구·빈 localStorage·사례 선택·`사진 스캔 과제함`의 기능 명세 진입을 확인했고, 외부 요청은 0건이었습니다. HTML은 HTTP 200과 최신 JS/CSS 자산을 반환했습니다.
+- 사람 참여 세션, VoiceOver/TalkBack, WebKit은 여전히 별도 검증 항목입니다.
