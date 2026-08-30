@@ -18,7 +18,8 @@ describe('learning visual system styles', () => {
     expect(mainSource.indexOf("import './styles/tokens.css'")).toBeGreaterThan(-1)
     expect(mainSource.indexOf("import './styles/global.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/tokens.css'"))
     expect(mainSource.indexOf("import './styles/components.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/global.css'"))
-    expect(mainSource.indexOf("import './styles/interactive.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/components.css'"))
+    expect(mainSource.indexOf("import './styles/responsive.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/components.css'"))
+    expect(mainSource.indexOf("import './styles/interactive.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/responsive.css'"))
     expect(mainSource.indexOf("import './styles/print.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/interactive.css'"))
   })
 
@@ -34,7 +35,7 @@ describe('learning visual system styles', () => {
   })
 
   it('uses only local system fonts and has no external font or URL imports', () => {
-    const css = ['global.css', 'components.css', 'print.css'].map(readStyle).join('\n')
+    const css = ['global.css', 'components.css', 'responsive.css', 'print.css'].map(readStyle).join('\n')
     expect(css).toContain('font-family:')
     expect(css).not.toMatch(/@import|url\(|https?:\/\//i)
   })
@@ -129,6 +130,15 @@ describe('learning visual system styles', () => {
     expect(pulseKeyframes?.[1]).toBeTruthy()
     expect(pulseKeyframes?.[1]).not.toMatch(/\btransform\s*:/)
     expect(css).toMatch(/\.gi-pulse::after\s*\{[\s\S]*?animation:\s*gi-pulse-aura/)
+  })
+
+  it('compacts the learner header rhythm on narrow screens without shrinking controls', () => {
+    const css = readStyle('responsive.css')
+    const mobileRules = css.slice(css.indexOf('@media (max-width: 520px)'))
+    expect(mobileRules).toMatch(/\.app-header\s*\{[^}]*padding-block:\s*var\(--space-3\)\s+var\(--space-2\)/)
+    expect(mobileRules).toMatch(/\.app-header__bar h1\s*\{[^}]*font-size:\s*clamp\(/)
+    expect(mobileRules).toMatch(/\.learning-model-notice\s*\{[^}]*margin-block-start:\s*var\(--space-2\)/)
+    expect(mobileRules).toMatch(/\.learning-model-notice__summary\s*\{[^}]*font-size:\s*1rem/)
   })
 
   it('keeps report content and hides only controls when printing', () => {

@@ -1,0 +1,25 @@
+@media (max-width: 520px) {
+  .app-header {
+    padding-block: var(--space-3) var(--space-2);
+  }
+
+  .app-header__bar h1 {
+    font-size: clamp(1.75rem, 8vw, 2.25rem);
+    line-height: 1.15;
+  }
+
+  .learning-model-notice {
+    margin-block-start: var(--space-2);
+    padding-block-start: var(--space-2);
+  }
+
+  .learning-model-notice__summary {
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .learning-overview,
+  .case-selector {
+    padding: var(--space-4);
+  }
+}
