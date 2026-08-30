@@ -267,3 +267,158 @@ These commits are future execution steps only. No commit, push, repository creat
 - [x] Every implementation step has exact paths, interface names, RED command, minimal GREEN change, passing command, and acceptance condition.
 - [x] Placeholder scan passed: every step names a concrete path, interface, command, and acceptance condition without incomplete markers.
 - [x] Type names and file responsibilities are consistent with the existing React/Vite codebase; no planned file exceeds 500 lines.
+
+## Scoped follow-up: learner language and educational simulation (2026-08-30)
+
+### Scope lock
+
+이번 후속 실행은 사용자가 지정한 두 영역만 다룹니다.
+
+1. 학습자에게 보이는 단어·문장·버튼·힌트·근거 작성 표현
+2. `ImpactScreen`의 조건 비교를 예측→조작→관찰→설명→초기화·전이 루프로 만드는 교육용 시뮬레이션
+
+기존 시작 화면 레이아웃, 보고서 표, 저장 포맷, 권한 판정 결과, 배포 설정, 이미지·음성 기능은 감사 대상이지만 변경 대상이 아닙니다. 실제 아동 연구·VoiceOver/TalkBack 실행·실제 권한 API·외부 요청은 수행하거나 추가하지 않습니다.
+
+### Goal
+
+- 초등 5–6학년 학습자가 `권한 영향 시뮬레이션`에서 “무엇을 먼저 예상하고, 하나를 바꾼 뒤, 무엇이 달라졌는지, 왜 그런지”를 한 문장으로 말할 수 있게 합니다.
+- 초등 3–4학년 보조 페르소나도 `기능 영향`, `조건부`, `기능 계약`을 첫 등장에 쉬운 풀이와 함께 이해하고 다음 조작을 하나만 찾게 합니다.
+- 기존 가상 모델의 사실 경계, 권한 최소화 학습 목표, 오답 비난 금지, 개인정보 입력 금지, `gi-pulse`, 44px target, reduced-motion, 라이트 모드를 유지합니다.
+- 같은 초기 상태와 같은 조작으로 같은 관찰 문구를 얻고, `처음 조건으로 돌아가기`로 다시 비교할 수 있게 합니다.
+
+### Architecture
+
+- `ImpactScreen`은 기존 `LabState`와 reducer 계약을 그대로 사용합니다. 시뮬레이션의 예측·설명 선택·관찰 완료 여부는 저장하지 않는 화면 로컬 상태로 둡니다.
+- `simulationModel.ts`는 조건별 학습 목표, 변수, 초기값, 조작 라벨, 관찰 문장, 설명 선택지를 순수 상수와 타입으로 제공합니다. UI가 문장을 임의 조합하지 않게 합니다.
+- `SimulationLearningLoop.tsx`는 순수 모델과 native form controls를 연결합니다. `prediction`을 먼저 선택하지 않으면 변수 조작을 잠그고, 조작 후에만 관찰·설명 선택·비교 확인을 엽니다.
+- `ConditionalScenarioCard.tsx`는 조건 카드의 제목·계약·필수 조건과 `SimulationLearningLoop`를 조합합니다. map 시나리오는 기존 reducer의 `map-current-position` 스위치를 사용하고, voice 시나리오는 실제 녹음 없이 화면 로컬의 `오래 보관하는 조건` checkbox만 사용합니다.
+- `onAcknowledge`는 예측·변수 조작·설명 선택이 모두 끝난 뒤에만 호출됩니다. 기존 `acknowledgedConditionIds`와 수정 단계 gate는 바꾸지 않습니다.
+- `simulation.css`를 별도 파일로 두어 현재 478줄인 `components.css`를 500줄 미만으로 유지합니다. `main.tsx`에서 CSS를 명시적으로 로드합니다.
+
+### Tech Stack
+
+- React 19, TypeScript 6, Vite 8의 DOM/native input/button/fieldset만 사용합니다.
+- Vitest + React Testing Library + user-event로 모델·컴포넌트 상태를 검증합니다.
+- MCP Playwright로 320×800, 375×812, 1280×900의 렌더링·키보드·터치 대체 경로·reduced-motion·콘솔·네트워크를 관찰합니다. 로컬 Playwright 바이너리 설치는 하지 않습니다.
+- `game-studio:game-studio`, `build-web-data-visualization:data-visualization`, `game-studio:game-playtest`는 Stage 0에서 `missing-optional`이므로 호출하지 않습니다. Canvas/WebGL, 새 엔진, 랜덤 seed, 외부 데이터는 추가하지 않습니다.
+- 한국어 표현 검수는 `moai-writer:korean-spell-check`의 저빈도·비상업 정책을 적용한 후보 검토와 `moai-writer:korean-humanize`의 의미 보존 원칙을 참고하되, 런타임 도구가 없어 공개 검사기 호출은 하지 않고 원장에 `not run`으로 기록합니다.
+
+### Spec and traceability
+
+| 요구사항 | 구현 연결 | 합격 조건 |
+|---|---|---|
+| 학습 목표·기존 차별성 보존 | `ImpactScreen`, `buildFunctionImpacts`, `judgePermission`의 가상 권한 계약 유지 | 실제 권한 요청 없이 기능·권한 관계를 설명하고 기존 판정 테스트가 통과 |
+| 핵심 흐름 | `SimulationLearningLoop`의 prediction → manipulation → observation → explanation → acknowledge | 조작 전에는 결과·정답을 숨기고, 비교 확인은 네 상태가 모두 완료된 뒤 활성화 |
+| 콘텐츠·판정 모델 | `ConditionalScenarioId`별 `SimulationScenarioSpec`과 기존 `ConditionalScenario` 문장 매핑 | map/voice 두 조건에서 모델 문장과 기존 verdict·control gate가 일치 |
+| 접근성 | fieldset/legend, labelled checkbox/radio, status/live 안내, focus-visible, 44px | Tab/Shift+Tab으로 모든 단계 도달, label과 현재 상태가 DOM text로 확인 |
+| 개인정보·안전 | voice 시뮬레이션은 가상 조건 checkbox만 제공하고 녹음·재생·저장 없음 | external request 0, permission API 0, localStorage 계약 불변 |
+| MVP 범위 | 기존 두 conditional scenario만 implement, 새 시뮬레이션 엔진 없음 | `simulation-decision.md`에서 두 objective만 `implement`, 나머지는 `not-needed` |
+| 완료 기준 | unit/lint/policy/build + 같은 브라우저 시나리오 | RED→GREEN, 320/375/1280, reduced-motion, reset·전이·콘솔·네트워크 기록 |
+
+### Simulation decision contract
+
+| simulation-id | objective / grade | variable·unit / initial state | prediction | manipulation | observable output | explanation / retry-transfer | pause-step / renderer / fallback |
+|---|---|---|---|---|---|---|---|
+| `map-current-position-opt-in` | 저장된 지도와 현재 위치 보기의 필요 범위를 비교 / 5–6 (보조 3–4) | 현재 위치 보기 스위치·unit 없음 / off | “스위치를 켜도 저장된 지도 조건은 그대로일까?” | prediction 선택 후 `현재 위치 보기 조건 켜기` checkbox | off: 저장 지도만, 위치 권한 불필요; on: 현재 위치 표시 기능과 사용 중 위치 권한 필요 가능 | 두 설명 중 하나 선택 후 비교 확인; reset으로 off 복귀, voice 사례로 같은 최소화 원리 전이 | pause/step N/A(시간 변화 없음); DOM/fieldset; reduced-motion 정지 문장 |
+| `voice-press-and-delete` | 사용 시점과 보관 기간이 권한 범위에 미치는 영향 비교 / 5–6 (보조 3–4) | 가상 보관 조건·unit 없음 / 누르는 동안만 처리·즉시 삭제 | “바로 삭제와 오래 보관 중 어느 쪽이 더 오래 정보를 붙잡을까?” | prediction 선택 후 `오래 보관하는 조건` checkbox | 짧은 조건: 누르는 동안 처리·재생 뒤 삭제; 변경 조건: 오래 보관하여 필요한 기간 증가 | 두 설명 중 하나 선택 후 비교 확인; reset으로 즉시 삭제 조건 복귀, map 사례에 전이 | pause/step N/A(녹음·시간 재생 없음); DOM/fieldset; reduced-motion 동일 정적 문장 |
+
+### Global Constraints
+
+- 학생에게 보여 주는 핵심 용어는 첫 등장에 `정확한 용어(쉬운 풀이)` 형식으로 한 번만 설명하고 이후에는 같은 용어를 유지합니다.
+- 문장은 `배울 것 → 지금 할 일 → 확인 방법` 순서, 한 문장 한 행동으로 나눕니다. `기능 영향`, `조건부`, `기능 계약`, `판정`은 원장과 화면에서 의미를 설명하지 않은 채 단독으로 사용하지 않습니다.
+- 기존 판단 근거·수치·권한 ID·저장 키·업데이트 기록 형식은 바꾸지 않습니다. 학생 입력은 기존대로 localStorage에 저장하지 않으며 저장 동의 시 rationale 원문만 기존 계약대로 남을 수 있습니다.
+- 화면에서 현재 활성화된 교육 핵심 버튼 하나만 `gi-pulse`로 강조합니다. 시뮬레이션의 `비교 결과 확인`이 활성화되기 전에는 그 버튼을 강조하고, 비교를 끝낸 뒤에는 기존 단계 primary CTA가 강조되도록 상호 배타적으로 유지합니다. `prefers-reduced-motion: reduce`에서는 aura animation 대신 고정 outline과 정적 상태 문장을 사용합니다.
+- 새 파일과 수정 파일 모두 500줄 미만입니다. `components.css`에는 시뮬레이션 규칙을 추가하지 않고 `simulation.css`로 분리합니다.
+- 브라우저 증거는 simulated learner panel 관찰입니다. 실제 학생·교사·VoiceOver/TalkBack·WebKit 인증으로 표현하지 않습니다.
+
+### Expected file structure and responsibilities
+
+- `src/features/impact/simulationModel.ts`: `SimulationScenarioId`, `SimulationPrediction`, `SimulationExplanation`, `SimulationScenarioSpec`, `SIMULATION_SCENARIOS`, `getSimulationScenarioSpec`를 정의하고 조건별 문장·초기값을 보관합니다.
+- `src/features/impact/simulationModel.test.ts`: 두 시나리오의 변수·초기값·관찰 문장·설명 선택지·pause/step N/A 계약을 순수 함수/상수로 검증합니다.
+- `src/features/impact/SimulationLearningLoop.tsx`: `SimulationLearningLoopProps`, 로컬 prediction/manipulation/explanation 상태, reset, observation, accessible form, acknowledge gate를 담당합니다.
+- `src/features/impact/SimulationLearningLoop.test.tsx`: prediction 선행, 한 변수 조작, 관찰 문장, 설명 선택, reset, 키보드 label, acknowledge callback의 RED→GREEN 테스트를 담당합니다.
+- `src/features/impact/ConditionalScenarioCard.tsx`: scenario contract와 `SimulationLearningLoop`를 연결하고 기존 case/switch callback 타입을 유지합니다.
+- `src/features/impact/ImpactScreen.tsx`: `권한 영향 시뮬레이션` 제목·짧은 안내·용어 풀이·기존 수정 방향 gate를 표시하며 새 loop props를 전달합니다.
+- `src/features/impact/impactProgress.ts`: `조건부 비교` 대신 learner-facing `비교` 진행 문장을 제공하고 기존 readiness 계산은 유지합니다.
+- `src/features/impact/FunctionImpactList.tsx`: `사용 가능한 기능`, `제한되는 기능`, `판정 근거`, `대안`에 쉬운 풀이를 붙이되 verdict 값과 데이터는 유지합니다.
+- `src/features/review/RationaleComposer.tsx`: 근거 문장 안내를 한 행동씩 나누고 문장틀의 용어 풀이를 보강합니다.
+- `src/features/review/reviewProgress.ts`: 수정 근거 미완료 힌트를 행동 하나와 결과로 바꿉니다.
+- `src/content/conditionalScenarios.ts`: 두 scenario의 title/prompt/requiredConditions를 짧고 정확하게 정리하며 조건 사실은 유지합니다.
+- `src/content/updateHistory.ts`: 2026-08-30 scoped language/simulation 개선 내역을 newest-first로 추가합니다.
+- `src/features/impact/ImpactScreen.test.tsx`, `src/features/review/PermissionReviewScreen.test.tsx`, `src/content/updateHistory.test.ts`: 변경 문구·gate·이력 계약을 회귀 검증합니다.
+- `src/styles/simulation.css`, `src/main.tsx`, `src/styles/styles.test.ts`: 단계별 loop 카드, observation/output, reset button, mobile wrapping, reduced-motion static fallback을 담당합니다.
+- `e2e/elementary-language-simulation.spec.ts`: 동일 scenario에서 표현 이해 probe, prediction→toggle→observation→explanation→reset/transfer, 320/375/1280, keyboard/reduced-motion/console/network를 기록합니다.
+- `work/elementary-webapp-ux-language-audit.md`: 문구별 before/after/난이도 신호/의미·교과 정확성/이해 probe/검증 상태를 기록합니다.
+- `work/elementary-webapp-ux-simulation-decision.md`: `implement` 두 objective와 선택하지 않은 pause/step·specialist 라우팅을 기록합니다.
+- `work/elementary-webapp-ux-simulation-test.md`: 결정적 초기 상태·행동·관찰·reset·mobile/keyboard/reduced-motion/static fallback 결과를 기록합니다.
+
+### TDD implementation sequence
+
+#### Step L1 — 표현 기준선과 RED 고정
+
+- [x] `work/elementary-webapp-ux-language-audit.md`에 실제 browser text와 source 위치를 기록하고 `EDU-LANG-001`~`EDU-LANG-006`을 만든다.
+- [x] `src/features/review/PermissionReviewScreen.test.tsx`와 `src/features/impact/ImpactScreen.test.tsx`에 새 learner-facing 문구와 한 행동 힌트를 먼저 기대한다.
+- [x] `npm run test:run -- src/features/review/PermissionReviewScreen.test.tsx src/features/impact/ImpactScreen.test.tsx`에서 기존 추상어·긴 문장 기대가 실패하는 RED를 기록한다.
+
+#### Step L2 — 최소 표현 개선과 GREEN
+
+- [x] `src/features/impact/ImpactScreen.tsx`, `src/features/impact/impactProgress.ts`, `src/features/impact/FunctionImpactList.tsx`, `src/content/conditionalScenarios.ts`에서 의미가 보존되는 짧은 문장과 첫 용어 풀이를 적용한다.
+- [x] `src/features/review/RationaleComposer.tsx`, `src/features/review/reviewProgress.ts`에서 개인정보 경계·문장틀·완료 조건을 두 문장 이상으로 나누되 저장·채점 사실을 바꾸지 않는다.
+- [x] focused Vitest가 새 제목·버튼·힌트·privacy boundary를 통과하고, `src/content/updateHistory.test.ts`가 날짜와 범위를 확인한다.
+
+#### Step S1 — 시뮬레이션 모델 RED
+
+- [x] `src/features/impact/simulationModel.test.ts`에서 두 `SimulationScenarioSpec`에 prediction, single variable, initial state, observation, explanation, reset, pause/step N/A를 요구한다.
+- [x] `src/features/impact/SimulationLearningLoop.test.tsx`에서 prediction 없이 조작/비교 확인이 disabled이고, 조작 후 관찰과 설명 선택이 나타나며 reset이 초기값을 복원하는 RED를 기록한다.
+- [x] `npm run test:run -- src/features/impact/simulationModel.test.ts src/features/impact/SimulationLearningLoop.test.tsx`를 구현 전에 실행한다.
+
+#### Step S2 — 최소 시뮬레이션 구현과 GREEN
+
+- [x] `src/features/impact/simulationModel.ts`에 두 시나리오의 결정적 문장과 타입을 추가한다.
+- [x] `src/features/impact/SimulationLearningLoop.tsx`에 prediction radio → variable checkbox → observation → explanation radio → `비교 결과 확인` 순서를 구현하고 reset button으로 로컬·map parent state를 초기값으로 되돌린다.
+- [x] voice 경로는 실제 녹음·재생 없이 가상 보관 조건만 변경하며 `aria-live` observation과 status를 제공한다.
+- [x] `ConditionalScenarioCard.tsx`와 `ImpactScreen.tsx`를 연결하고 기존 reducer acknowledgement/readiness gate를 유지한다.
+- [x] `src/styles/simulation.css`에 44px controls, mobile single-column, visible focus, non-moving pulse-compatible cards, reduced-motion static fallback을 추가하고 `src/main.tsx`에서 로드한다.
+- [x] focused model/component/screen tests가 GREEN이 되고, map·voice 모두 `비교 결과 확인` 전 callback 호출이 0회인지 확인한다.
+
+#### Step S3 — 접근성·콘텐츠·정적 회귀
+
+- [x] `src/styles/styles.test.ts`에 `simulation.css` import, `.simulation-loop`, `.simulation-loop__observation`, `@media (prefers-reduced-motion: reduce)`, `min-block-size: var(--min-target-size)`를 요구한다.
+- [x] `e2e/elementary-language-simulation.spec.ts`에 role/label 기반 keyboard path를 작성한다. 사례 선택→권한 선택→영향 화면까지는 기존 helper를 재사용하지 않고 이 파일에 필요한 최소 helper를 명시한다.
+- [x] `npm run test:run -- src/features/impact src/features/review src/styles/styles.test.ts src/content/updateHistory.test.ts`와 `npm run lint`를 실행해 GREEN을 확인한다.
+
+#### Step S4 — 동일 시나리오 재검증과 문서화
+
+- [x] MCP Playwright에서 320×800, 375×812, 1280×900 각각 map on/off와 voice retention on/off를 같은 순서로 실행하고 `work/elementary-webapp-ux-simulation-test.md`에 결과를 쓴다.
+- [x] prediction 전 결과 비공개, 조작 한 개, observation DOM text, explanation 선택, reset 초기화, 다른 case 전이를 확인한다.
+- [x] request listener를 navigation 전에 설치하고 허용 origin을 `http://127.0.0.1:44176/`로 고정해 external request·console error를 `[]`로 기록한다.
+- [x] `work/elementary-webapp-ux-audit.md`와 `work/elementary-webapp-ux-report.md`에 이번 scope 전용 전후 점수와 issue status를 append한다. 실제 학생·VoiceOver/TalkBack을 실행하지 않았다고 명시한다.
+
+### Future commands and expected results
+
+| 단계 | 나중에 실행할 명령 | 예상 결과 |
+|---|---|---|
+| 표현 RED/GREEN | `npm run test:run -- src/features/review/PermissionReviewScreen.test.tsx src/features/impact/ImpactScreen.test.tsx src/content/updateHistory.test.ts` | RED에서 추상어·긴 힌트 기대가 실패하고, GREEN에서 지정 before/after 계약이 통과 |
+| 시뮬레이션 RED/GREEN | `npm run test:run -- src/features/impact/simulationModel.test.ts src/features/impact/SimulationLearningLoop.test.tsx src/features/impact/ImpactScreen.test.tsx` | prediction 선행·single variable·observation·explanation·reset·ack gate가 통과 |
+| 전체 unit/coverage | `npm run test:run && npm run test:coverage` | 모든 Vitest 통과, 기존 coverage보다 하락하지 않거나 측정 수치를 보고 |
+| 정적 정책 | `npm run test:policy && npm run check:policy && npm run lint` | policy 0 violation, ESLint exit 0 |
+| production | `npm run build` | TypeScript와 Vite bundle 성공 |
+| browser scoped | `npx playwright test e2e/elementary-language-simulation.spec.ts --project=mobile-375 --workers=1` | 375px 표현·simulation·reduced-motion·no-overflow pass; 바이너리 없으면 blocked로 기록 |
+| diff/size | `git diff --check` 및 `find src e2e scripts -type f \( -name '*.ts' -o -name '*.tsx' -o -name '*.css' -o -name '*.mjs' \) -exec wc -l {} + | awk '$2 != "total" && $1 >= 500 {print}'` | diff 오류와 500줄 이상 파일 모두 없음 |
+
+### Future commit sequence (not executed in this run)
+
+1. `fix: clarify learner language in impact and rationale steps` — 표현 원장에 기록된 범위만 수정하고 focused tests를 포함합니다.
+2. `feat: add deterministic permission impact simulation loop` — simulation model/UI/CSS와 RED→GREEN 테스트를 포함합니다.
+3. `docs: record scoped language and simulation review` — simulation decision/test, audit/report, update history와 게이트 결과를 기록합니다.
+
+이번 계획의 명령과 커밋은 이후 실행 항목이며, 현재 턴에는 커밋·푸시·배포를 실행하지 않습니다.
+
+### Scoped plan self-review
+
+- [x] 두 사용자 지정 영역만 scope에 남기고 기존 시작·보고서·배포·이미지 기능은 변경 대상에서 제외했습니다.
+- [x] 학습 목표, 가상 콘텐츠·판정, 접근성, 개인정보 경계, MVP·완료 기준을 정확한 파일·인터페이스·테스트에 연결했습니다.
+- [x] 예측→한 변수→관찰→설명→reset/전이, pause/step N/A, 모델 경계·단위·불확실성, DOM fallback을 기록했습니다.
+- [x] `gi-pulse`, reduced-motion, update history 날짜, 모바일·키보드·스크린 리더 의미 구조 검증을 별도 단계로 명시했습니다. VoiceOver/TalkBack 실행은 약속하지 않았습니다.
+- [x] 모든 단계가 RED→최소 구현→GREEN 순서와 구체적인 파일·타입·합격 조건을 가집니다.
+- [x] 자리표시자 문구를 사용하지 않았고, 새 소스 파일은 500줄 미만으로 분리했습니다.

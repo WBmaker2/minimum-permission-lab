@@ -18,7 +18,8 @@ describe('learning visual system styles', () => {
     expect(mainSource.indexOf("import './styles/tokens.css'")).toBeGreaterThan(-1)
     expect(mainSource.indexOf("import './styles/global.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/tokens.css'"))
     expect(mainSource.indexOf("import './styles/components.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/global.css'"))
-    expect(mainSource.indexOf("import './styles/responsive.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/components.css'"))
+    expect(mainSource.indexOf("import './styles/simulation.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/components.css'"))
+    expect(mainSource.indexOf("import './styles/responsive.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/simulation.css'"))
     expect(mainSource.indexOf("import './styles/interactive.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/responsive.css'"))
     expect(mainSource.indexOf("import './styles/print.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/interactive.css'"))
   })
@@ -114,6 +115,18 @@ describe('learning visual system styles', () => {
     expect(css).toMatch(/\.action-requirement-hint\s*\{[^}]*border:/)
     expect(css).toMatch(/\.action-requirement-hint\s*\{[^}]*padding:/)
     expect(css).not.toContain('border-inline-start: 4px')
+  })
+
+  it('keeps the simulation learning loop readable and static for reduced motion', () => {
+    const css = readStyle('simulation.css')
+    expect(css).toMatch(/\.simulation-loop\s*\{[^}]*border:/)
+    expect(css).toMatch(/\.simulation-loop label\s*\{[^}]*min-block-size:\s*var\(--min-target-size\)/)
+    expect(css).toMatch(/\.simulation-loop__observation\s*\{[^}]*border-inline-start:/)
+    expect(css).toContain('@media (max-width: 640px)')
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
+    const reducedMotion = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'))
+    expect(reducedMotion).toMatch(/transition:\s*none/)
+    expect(reducedMotion).toMatch(/animation:\s*none/)
   })
 
   it('provides responsive button feedback without moving surrounding layout', () => {

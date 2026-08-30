@@ -94,9 +94,9 @@ describe('four virtual learning cases', () => {
     expect(voice.caseId).toBe('voice-reading')
     expect(voice.permissionId).toBe('microphone')
     expect(voice.featureSwitchId).toBeUndefined()
-    expect(voice.changedContract).toMatch(/누르고 있는 동안|바로 재생|즉시 삭제/)
+    expect(voice.changedContract).toMatch(/누르는 동안|바로 삭제/)
     expect(voice.requiredConditions).toHaveLength(3)
-    expect(voice.comparisonPrompt).toMatch(/사용 시점|저장 기간/)
+    expect(voice.comparisonPrompt).toMatch(/바로 삭제|오래 보관/)
 
     const map = CONDITIONAL_SCENARIOS['map-current-position-opt-in']
     expect(map.caseId).toBe('class-map')
@@ -104,7 +104,7 @@ describe('four virtual learning cases', () => {
     expect(map.featureSwitchId).toBe('map-current-position')
     expect(map.changedContract).toMatch(/저장 지도|스위치|현재 위치/)
     expect(map.requiredConditions).toHaveLength(3)
-    expect(map.comparisonPrompt).toMatch(/껐을 때|켰을 때/)
+    expect(map.comparisonPrompt).toMatch(/현재 위치 보기|예상/)
   })
 
   it('does not use real brands or victim stories in case content', () => {

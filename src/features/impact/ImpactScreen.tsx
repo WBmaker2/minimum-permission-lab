@@ -73,14 +73,14 @@ export default function ImpactScreen({
 
   return (
     <main aria-labelledby={titleId}>
-      <h2 id={titleId} data-stage-heading tabIndex={-1}>기능 영향 시뮬레이션</h2>
-      <p>{appCase.title}: 선택한 권한이 기능에 미치는 영향을 살펴봅니다.</p>
-      <p>이 화면은 실제 권한을 요청하지 않는 가상 학습 모델 비교입니다.</p>
+      <h2 id={titleId} data-stage-heading tabIndex={-1}>권한 영향 시뮬레이션</h2>
+      <p>{appCase.title}: 고른 권한이 켜져 있을 때 어떤 기능이 되는지 확인해 봅니다.</p>
+      <p>이곳에서만 쓰는 가상 실험입니다. 실제 권한은 바뀌지 않습니다.</p>
       <StatusLiveRegion message={statusMessage} />
       <FunctionImpactList impacts={impacts} />
       {scenarios.length > 0 && (
         <section aria-labelledby="conditional-scenarios-title">
-          <h3 id="conditional-scenarios-title">조건부 기능 비교</h3>
+          <h3 id="conditional-scenarios-title">조건을 바꿔 보세요</h3>
           {scenarios.map((scenario) => (
             <ConditionalScenarioCard
               key={scenario.id}
@@ -94,7 +94,7 @@ export default function ImpactScreen({
         </section>
       )}
       <fieldset>
-        <legend>다음 수정 방향을 고르세요. 둘 다 가상 학습용 행동이며 실제 기기 설정을 바꾸지 않습니다.</legend>
+        <legend>이제 다음 행동을 하나 고르세요. 둘 다 이 화면 안에서만 연습하며, 기기 설정은 바뀌지 않습니다.</legend>
         <label>
           <input
             type="radio"

@@ -65,14 +65,23 @@ export async function completeCaseWithKeyboard(page: Page, caseId: CaseId, onPri
   await onPrimaryAction?.(impactButton)
   await impactButton.press('Enter')
 
-  const switchControl = page.getByRole('checkbox', { name: /내 위치 표시 기능 켜기/ })
-  if (await switchControl.count() > 0) await switchControl.press('Space')
-  const conditionButton = page.getByRole('button', { name: '비교 확인', exact: true })
-  if (await conditionButton.count() > 0) {
-    for (let index = 0; index < await conditionButton.count(); index += 1) {
-      const button = conditionButton.nth(index)
-      if (await button.isEnabled()) await button.press('Space')
-    }
+  const conditionButton = page.getByRole('button', { name: '비교 결과 확인', exact: true })
+  if (caseId === 'voice-reading') {
+    await page.getByRole('radio', { name: '누르는 동안만 처리하고 바로 삭제해요.', exact: true }).press('Space')
+    const retentionControl = page.getByRole('checkbox', { name: '오래 보관하는 조건 켜기', exact: true })
+    await expect(retentionControl).not.toBeChecked()
+    await retentionControl.press('Space')
+    await page.getByRole('radio', { name: '오래 보관하면 더 긴 기간 동안 정보가 남아요.', exact: true }).press('Space')
+    await expect(conditionButton).toBeEnabled()
+    await conditionButton.press('Space')
+  } else if (caseId === 'class-map') {
+    await page.getByRole('radio', { name: '현재 위치 보기 기능이 함께 켜져요.', exact: true }).press('Space')
+    const switchControl = page.getByRole('checkbox', { name: '현재 위치 보기 조건 켜기', exact: true })
+    await expect(switchControl).not.toBeChecked()
+    await switchControl.press('Space')
+    await page.getByRole('radio', { name: '스위치를 켜면 현재 위치 보기 기능이 함께 켜져요.', exact: true }).press('Space')
+    await expect(conditionButton).toBeEnabled()
+    await conditionButton.press('Space')
   }
   await page.getByRole('radio', { name: '대안 사용', exact: true }).press('Space')
   await expect(page.getByRole('radio', { name: '대안 사용', exact: true })).toBeChecked()

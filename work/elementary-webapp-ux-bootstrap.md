@@ -1,6 +1,6 @@
 # Elementary Web App UX Stage 0 Report
 
-- Generated: `2026-08-30T11:45:50+00:00`
+- Generated: `2026-08-30T13:23:58+00:00`
 - Project: `/Volumes/ External Drive 256G/Dev2/codex/minimum-permission-lab`
 - Mode: `full`
 - Runtime snapshot: `supplied`
@@ -16,6 +16,9 @@
 | implementation-specialist | no | runtime-available | frontend-skill, redesign-existing-projects | redesign-existing-projects: /Users/kimhongnyeon/.agents/skills/redesign-existing-projects, /Users/kimhongnyeon/.codex/skills/redesign-existing-projects; frontend-skill: /Users/kimhongnyeon/.codex/skills/frontend-skill |
 | image-generation | no | runtime-available | imagegen | imagegen: /Users/kimhongnyeon/.codex/skills/imagegen |
 | skill-installation | no | missing-optional | — | — |
+| simulation-architecture | no | missing-optional | — | — |
+| simulation-data-visualization | no | missing-optional | — | — |
+| simulation-canvas-webgl-playtest | no | missing-optional | — | — |
 
 ## Program status
 
@@ -49,6 +52,9 @@
 | frontend-skill | implementation-specialist | available | /Users/kimhongnyeon/.codex/skills/frontend-skill | runtime-only-unless-user-provides-source | — | — |
 | education-webapp-redesign | existing-redesign-orchestrator | available | /Users/kimhongnyeon/.agents/skills/education-webapp-redesign, /Users/kimhongnyeon/.codex/skills/education-webapp-redesign | runtime-only-unless-user-provides-source | — | — |
 | skill-installer | skill-installation | missing | — | system-preinstalled | — | — |
+| game-studio:game-studio | simulation-architecture | missing | — | runtime-plugin-only | — | — |
+| build-web-data-visualization:data-visualization | simulation-data-visualization | missing | — | runtime-plugin-only | — | — |
+| game-studio:game-playtest | simulation-canvas-webgl-playtest | missing | — | runtime-plugin-only | — | — |
 
 ## Required next actions
 

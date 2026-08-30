@@ -75,19 +75,27 @@ describe('UPDATE_HISTORY', () => {
     expect(UPDATE_HISTORY[0]).toEqual({
       date: '2026-08-30',
       category: '개선',
-      summary: '초등 학습자 첫 행동과 키보드 순서 개선',
-      reason: '헤더 중복 상세를 줄이고 사례를 고른 뒤 다음 버튼으로 포커스를 옮겼으며, 320px·375px 모바일 시작 화면의 세로 간격을 다듬음; 자동 키보드·모바일·모션 감소 흐름은 확인했지만 실제 학생 세션과 VoiceOver·TalkBack 수동 실행은 포함하지 않음',
+      summary: '단어·문장 표현과 권한 영향 시뮬레이션 개선',
+      reason: '초등 학습자 패널 기준으로 짧은 문장과 한 가지 행동 안내를 다듬고, 예상하기·조건 하나 바꾸기·관찰·설명·처음 조건으로 돌아가기 흐름을 추가함; 실제 권한·마이크·위치를 사용하지 않으며 실제 학생 세션과 VoiceOver·TalkBack 수동 실행은 포함하지 않음',
     })
     expect(UPDATE_HISTORY[0].summary).not.toContain('스크린 리더 검증 완료')
     expect(UPDATE_HISTORY[0].reason).not.toContain('스크린 리더 검증 완료')
     expect(UPDATE_HISTORY[1]).toEqual({
+      date: '2026-08-30',
+      category: '개선',
+      summary: '초등 학습자 첫 행동과 키보드 순서 개선',
+      reason: '헤더 중복 상세를 줄이고 사례를 고른 뒤 다음 버튼으로 포커스를 옮겼으며, 320px·375px 모바일 시작 화면의 세로 간격을 다듬음; 자동 키보드·모바일·모션 감소 흐름은 확인했지만 실제 학생 세션과 VoiceOver·TalkBack 수동 실행은 포함하지 않음',
+    })
+    expect(UPDATE_HISTORY[1].summary).not.toContain('스크린 리더 검증 완료')
+    expect(UPDATE_HISTORY[1].reason).not.toContain('스크린 리더 검증 완료')
+    expect(UPDATE_HISTORY[2]).toEqual({
       date: '2026-08-29',
       category: '개선',
       summary: '첫 행동·단계 안내·결과 다음 행동 정리',
       reason: '사례 선택을 앞에 배치하고 단계 제목 포커스·스크롤, 조건 안내, 결과 다음 행동을 보강함; 자동 키보드·모바일 구조 검증을 기록하고 VoiceOver·TalkBack 수동 실행은 포함하지 않음',
     })
-    expect(UPDATE_HISTORY[1].summary).not.toContain('스크린 리더 검증 완료')
-    expect(UPDATE_HISTORY[1].reason).not.toContain('스크린 리더 검증 완료')
+    expect(UPDATE_HISTORY[2].summary).not.toContain('스크린 리더 검증 완료')
+    expect(UPDATE_HISTORY[2].reason).not.toContain('스크린 리더 검증 완료')
   })
 
   it('records the Task16 completion-summary improvement entry', () => {

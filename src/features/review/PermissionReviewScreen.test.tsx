@@ -102,13 +102,13 @@ describe('PermissionReviewScreen', () => {
       mode: 'revision',
       progress: progress({ reasonTags: [], rationaleText: '' }),
     })
-    expect(screen.queryByRole('textbox', { name: '내 판단 근거' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: '내가 고른 이유' })).toBeInTheDocument()
     expect(screen.getByText('수정 선택 0/4')).toBeVisible()
     expect(screen.getByRole('button', { name: '선택 검토' })).toBeDisabled()
     for (const radio of screen.getAllByRole('radio', { name: '허용하지 않음' })) await user.click(radio)
     await user.click(screen.getByRole('checkbox', { name: '정보 최소화' }))
     expect(onReasonTagToggle).toHaveBeenCalledWith('photo-scan', 'data-minimization')
-    await user.type(screen.getByRole('textbox', { name: '내 판단 근거' }), '   ')
+    await user.type(screen.getByRole('textbox', { name: '내가 고른 이유' }), '   ')
     expect(onRationaleTextChange).toHaveBeenLastCalledWith('photo-scan', '   ')
     expect(screen.getByRole('button', { name: '선택 검토' })).toBeDisabled()
   })
@@ -116,7 +116,7 @@ describe('PermissionReviewScreen', () => {
   it('shows the rationale 240-character boundary and remaining count', async () => {
     const user = userEvent.setup()
     renderReview({ mode: 'revision', progress: progress({ reasonTags: ['data-minimization'], rationaleText: '' }) })
-    const rationale = screen.getByRole('textbox', { name: '내 판단 근거' })
+    const rationale = screen.getByRole('textbox', { name: '내가 고른 이유' })
     expect(rationale).toHaveAttribute('maxlength', '240')
     expect(screen.getByText(/남은 글자 수: 240자/)).toBeVisible()
     await user.type(rationale, '가'.repeat(240))
@@ -126,7 +126,8 @@ describe('PermissionReviewScreen', () => {
 
   it('shows the exact sentence frame for a revision rationale', () => {
     renderReview({ mode: 'revision', progress: progress({ reasonTags: ['function-connection'], rationaleText: '근거' }) })
-    expect(screen.getByText('문장틀: 나는 [기능]을 위해 [권한]을 [선택]하겠습니다. 그 이유는 [근거]이며, 필요하지 않을 때는 [대안 또는 철회]하겠습니다.')).toBeVisible()
+    expect(screen.getByText(/문장 도움말:/)).toBeVisible()
+    expect(screen.getByText(/고른 이유를 써 보세요/)).toBeVisible()
   })
 
   it('requires a tag and nonblank rationale, passing the exact case id', async () => {
@@ -134,7 +135,7 @@ describe('PermissionReviewScreen', () => {
     renderReview({ mode: 'revision', progress: progress({ reasonTags: [], rationaleText: '' }) })
     for (const radio of screen.getAllByRole('radio', { name: '허용하지 않음' })) await user.click(radio)
     await user.click(screen.getByRole('checkbox', { name: '기능 연결' }))
-    await user.type(screen.getByRole('textbox', { name: '내 판단 근거' }), '필요한 기능에만 연결했습니다.')
+    await user.type(screen.getByRole('textbox', { name: '내가 고른 이유' }), '필요한 기능에만 연결했습니다.')
     expect(screen.getByRole('button', { name: '선택 검토' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '선택 검토' })).toHaveClass('gi-pulse')
   })

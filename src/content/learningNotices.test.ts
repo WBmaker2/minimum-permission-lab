@@ -98,9 +98,9 @@ describe('learning safety notices', () => {
       },
     ))
 
-    expect(screen.getByText(/실제 이름·전화번호·주소.*개인정보/)).toBeVisible()
-    expect(screen.getByText(/저장 동의.*학습 기록에 보관될 수 있습니다/)).toBeVisible()
-    expect(screen.getByText(/AI나 키워드로 채점하지 않/)).toBeVisible()
+    expect(screen.getByText(/실제 이름·전화번호·주소는 쓰지 마세요/)).toBeVisible()
+    expect(screen.getByText(/저장 동의.*이 기기에 남을 수 있습니다/)).toBeVisible()
+    expect(screen.getByText(/자동으로 채점하지 않/)).toBeVisible()
   })
 
   it('renders a compact safety summary and reveals details on request', async () => {

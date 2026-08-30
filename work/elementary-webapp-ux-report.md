@@ -165,3 +165,49 @@
 - GitHub Pages workflow: [33311957285](https://github.com/WBmaker2/minimum-permission-lab/actions/runs/33311957285), success; lint, policy/unit tests, production build, artifact upload, and Pages deploy all passed.
 - Public verification: HTTP 200, title `앱 권한 최소허용 연구소`, JS/CSS assets 200, 320px·375px first-case bounds and no horizontal overflow, header details 0, latest update history present, external requests 0, console errors 0.
 - The public URL now reflects the merged learner UX improvements. VoiceOver/TalkBack and real student sessions remain separate evidence states.
+
+## Scoped follow-up report — language and simulation only (2026-08-30)
+
+### Scope and decision
+
+이번 실행은 사용자가 지정한 두 기능만 검토하고 개선했습니다.
+
+1. 학습자에게 보이는 단어·문장·버튼·힌트·근거 작성 표현
+2. 권한 영향 화면의 두 교육용 시뮬레이션: `map-current-position-opt-in`, `voice-press-and-delete`
+
+시작 화면의 기존 레이아웃, 보고서, 저장 포맷, 권한 판정, 배포 설정은 변경하지 않았습니다. 실제 권한·위치·마이크·녹음·재생·외부 요청은 사용하지 않았고, 실제 아동·교사·VoiceOver·TalkBack 결과를 주장하지 않습니다.
+
+### 구현 변경
+
+- `src/features/impact/simulationModel.ts`에 두 시나리오의 `SimulationScenarioSpec`을 추가했습니다. 각 모델은 prediction, 한 변수, 초기값, observation, explanation, 경계 문장, pause/step 적용 이유를 고정 상수로 제공합니다.
+- `src/features/impact/SimulationLearningLoop.tsx`에 native fieldset/radio/checkbox 기반 `prediction → manipulation → observation → explanation → compare` 순서를 구현했습니다. `처음 조건으로 돌아가기`는 로컬 상태와 map switch를 초기값으로 복원하며, 준비된 `비교 결과 확인`에만 `gi-pulse`를 적용해 단계 primary CTA와 동시에 깜빡이지 않게 했습니다.
+- `src/features/impact/ConditionalScenarioCard.tsx`는 map reducer switch와 voice 화면 로컬 보관 조건을 분리합니다. voice retention은 꺼진 상태에서 시작하며 녹음·재생 컨트롤을 만들지 않습니다.
+- `src/features/impact/ImpactScreen.tsx`, `FunctionImpactList.tsx`, `impactProgress.ts`, `src/content/conditionalScenarios.ts`, `src/features/review/RationaleComposer.tsx`, `src/features/review/reviewProgress.ts`에서 추상 표현을 한 행동씩 읽히는 문장으로 바꿨습니다. 개인정보·저장·자동 채점 경계와 기존 판정 사실은 유지했습니다.
+- `src/styles/simulation.css`를 새로 두어 카드와 관찰 결과를 500줄 미만 파일로 분리하고, 44px target·좁은 화면 세로 배치·reduced-motion 정적 fallback을 제공합니다.
+- `src/content/updateHistory.ts`에 `단어·문장 표현과 권한 영향 시뮬레이션 개선` 날짜 항목을 newest-first로 추가했습니다.
+- `e2e/elementary-language-simulation.spec.ts`에 표현 probe, map/voice loop, reset, reduced-motion, mobile overflow, no-external-request 계약을 추가했습니다. 기존 full-flow helper도 새 비교 단계에 맞췄습니다.
+
+### TDD와 게이트
+
+- RED: 시뮬레이션 모듈·컴포넌트 부재와 기존 문구 기대 불일치를 먼저 확인했습니다.
+- GREEN: `npm run test:run` — Node policy 19/19, Vitest 27 files/243 tests 통과.
+- `npm run test:coverage` — Statements 91.09%, Branches 88.09%, Functions 91.4%, Lines 96%.
+- `npm run lint` — exit 0.
+- `npm run build` — TypeScript와 Vite production bundle 통과.
+- CSS source test — simulation layer import, min target, mobile/reduced-motion 규칙 통과.
+- `git diff --check`와 500줄 검사 — 오류·500줄 이상 파일 없음.
+- `npm run test:e2e -- e2e/elementary-language-simulation.spec.ts` — 코드가 실행되기 전 로컬 Chromium/WebKit 바이너리 부재로 6개가 환경 차단되었습니다. 브라우저를 설치하지 않았으며 이 결과를 pass로 세지 않습니다.
+
+### 동일 시나리오 MCP 브라우저 증거
+
+- 서버 `http://127.0.0.1:44176/`에서 navigation 전에 request/console listener를 설치했습니다.
+- map 320×800: Space로 prediction을 고른 뒤 위치 조건을 켜고 설명·비교를 완료했습니다. reset 후 checkbox unchecked, observation hidden을 확인했습니다. `clientWidth=305`, `scrollWidth=305`, 작은 target 0, reduced-motion animation 0.
+- map 375×812: 동일 흐름과 reset/retry를 완료했습니다. `clientWidth=360`, `scrollWidth=360`, 작은 target 0, reduced-motion animation 0. 결과는 [elementary-simulation-final-375.png](../output/elementary-simulation-final-375.png)에서 확인할 수 있습니다.
+- map 1280×900: prediction 전 조작 차단, changed observation, explanation 후 compare 완료를 확인했습니다. 결과는 [elementary-simulation-final-1280.png](../output/elementary-simulation-final-1280.png)입니다.
+- rationale 1280×900: `고른 이유를 써 보세요`, 개인정보 저장 경계, 자동 채점 없음, 문장 도움말이 한 화면에서 분리되어 보입니다. 결과는 [elementary-language-final-rationale-1280.png](../output/elementary-language-final-rationale-1280.png)입니다.
+- voice 1280×900: retention checkbox가 off로 시작하고 on 전환 뒤 긴 보관 observation을 표시했습니다. 비교 완료 후에도 녹음/재생 버튼 수 0, 경계 문장에 실제 음성·마이크·재생 미사용이 명시되었습니다.
+- 모든 새 MCP 흐름에서 external requests `[]`, console errors `[]`, 가로 넘침 없음이었습니다.
+
+### 현재 남은 증거 단계
+
+기능 구현과 scoped QA는 완료했습니다. 실제 초등 학습자 세션, 교사 동석 관찰, VoiceOver/TalkBack, CI 브라우저 바이너리에서의 Playwright 실행은 별도 증거 단계입니다. 이번 턴에는 커밋·푸시·배포를 실행하지 않았습니다.

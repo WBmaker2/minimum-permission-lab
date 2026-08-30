@@ -32,21 +32,21 @@ function FunctionList({ title, items }: { title: string; items: readonly string[
 export default function FunctionImpactList({ impacts }: FunctionImpactListProps): ReactElement {
   return (
     <section aria-labelledby="function-impact-list-title">
-      <h3 id="function-impact-list-title">권한별 기능 영향</h3>
+      <h3 id="function-impact-list-title">권한마다 달라지는 일</h3>
       {impacts.length === 0 ? <p>아직 확인할 권한 선택이 없습니다.</p> : impacts.map((impact) => {
         const permission = getPermissionDefinition(impact.permissionId)
         return (
           <article key={impact.permissionId}>
             <h4>{permission.label} · {VERDICT_LABELS[impact.judgment.verdict]}</h4>
             <p>선택: {CHOICE_LABELS[impact.choice]}</p>
-            <FunctionList title="사용 가능한 기능" items={impact.availableFunctions} />
-            <FunctionList title="제한되는 기능" items={impact.limitedFunctions} />
+            <FunctionList title="계속 할 수 있는 일" items={impact.availableFunctions} />
+            <FunctionList title="제한되는 일" items={impact.limitedFunctions} />
             <section>
-              <h5>판정 피드백</h5>
+              <h5>이 선택의 설명</h5>
               <p>{impact.judgment.feedback}</p>
-              <h5>판정 근거</h5>
+              <h5>왜 이렇게 판단했을까요?</h5>
               <p>{impact.judgment.contractEvidence}</p>
-              <h5>대안</h5>
+              <h5>다른 방법</h5>
               <p>{impact.judgment.alternative}</p>
             </section>
           </article>

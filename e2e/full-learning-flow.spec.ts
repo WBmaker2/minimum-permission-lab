@@ -38,23 +38,27 @@ async function completeAllCases(page: Page): Promise<void> {
     for (let permissionIndex = 0; permissionIndex < 4; permissionIndex += 1) await initialChoices.nth(permissionIndex).check()
     await page.getByRole('button', { name: '선택 검토', exact: true }).press('Enter')
 
-    const switchControl = page.getByRole('checkbox', { name: /내 위치 표시 기능 켜기/ })
     const expectedConditionCount = caseId === 'voice-reading' || caseId === 'class-map' ? 1 : 0
-    const conditionButtons = page.getByRole('button', { name: '비교 확인', exact: true })
+    const conditionButtons = page.getByRole('button', { name: '비교 결과 확인', exact: true })
     await expect(conditionButtons).toHaveCount(expectedConditionCount)
     if (caseId === 'voice-reading') {
-      await expect(switchControl).toHaveCount(0)
+      await page.getByRole('radio', { name: '누르는 동안만 처리하고 바로 삭제해요.', exact: true }).check()
+      const retentionControl = page.getByRole('checkbox', { name: '오래 보관하는 조건 켜기', exact: true })
+      await expect(retentionControl).not.toBeChecked()
+      await retentionControl.check()
       await expect(page.getByRole('heading', { name: /마이크는 녹음 버튼을 누르고 있는 동안/ })).toBeVisible()
+      await page.getByRole('radio', { name: '오래 보관하면 더 긴 기간 동안 정보가 남아요.', exact: true }).check()
       await conditionButtons.first().click()
     } else if (caseId === 'class-map') {
-      await expect(switchControl).toHaveCount(1)
+      await page.getByRole('radio', { name: '현재 위치 보기 기능이 함께 켜져요.', exact: true }).check()
+      const switchControl = page.getByRole('checkbox', { name: '현재 위치 보기 조건 켜기', exact: true })
+      await expect(switchControl).not.toBeChecked()
       await switchControl.check()
-      await expect(page.getByText(/기본 저장 지도는 권한 없이/)).toBeVisible()
+      await expect(page.getByText(/저장된 지도만 보여서 위치 권한이 필요하지 않습니다/)).toBeVisible()
+      await page.getByRole('radio', { name: '스위치를 켜면 현재 위치 보기 기능이 함께 켜져요.', exact: true }).check()
       await conditionButtons.first().click()
-    } else {
-      await expect(switchControl).toHaveCount(0)
     }
-    if (expectedConditionCount === 1) await expect(page.getByRole('button', { name: '비교 확인 완료', exact: true })).toHaveCount(1)
+    if (expectedConditionCount === 1) await expect(page.getByRole('button', { name: '비교 결과 확인 완료', exact: true })).toHaveCount(1)
     await page.getByRole('radio', { name: index % 2 === 0 ? '대안 사용' : '권한 철회', exact: true }).check()
     await page.getByRole('button', { name: '최소 권한안 수정', exact: true }).press('Enter')
 

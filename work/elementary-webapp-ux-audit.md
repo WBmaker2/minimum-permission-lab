@@ -124,3 +124,37 @@
 ## Audit disposition
 
 P0/P1은 관찰되지 않았습니다. EDU-UX-001~003을 먼저 구현하면 키보드·모바일·다음 행동의 P2 마찰이 동시에 줄어듭니다. EDU-UX-004는 중복 제거로 함께 해결합니다. 기준선 이후에는 같은 시작 상태와 같은 오답·완료 순서로 다시 실행하고, 실제 아동 세션·교사 관찰·VoiceOver/TalkBack/WebKit은 별도 증거 상태로 유지합니다.
+
+## Scoped follow-up audit — word/sentence expression and simulation only (2026-08-30)
+
+### Scope lock
+
+이번 재점검은 새로 추가된 두 기능만 대상으로 했습니다.
+
+- 학습자 화면의 단어·문장·버튼·힌트·근거 작성 표현
+- 권한 영향 화면의 map/voice 교육용 시뮬레이션
+
+기존 시작 화면·보고서·저장 포맷·권한 판정·배포 설정은 이번 개선 대상에서 제외했습니다. 실제 아동이 참여한 연구가 아니라 초등 5–6학년 서윤과 초등 3–4학년 준호를 가정한 simulated learner panel입니다.
+
+### Before → after findings
+
+| scoped issue | before | after | learner acceptance |
+|---|---|---|---|
+| impact title/instruction | `기능 영향 시뮬레이션`과 추상적인 “미치는 영향” 설명 | `권한 영향 시뮬레이션`과 “어떤 기능이 되는지 확인” 문장 | 제목과 첫 문장만 읽고 권한-기능 변화를 말할 수 있음 |
+| model boundary | 실제 권한 요청·가상 모델을 한 문장에 함께 설명 | “이곳에서만 쓰는 가상 실험”과 “실제 권한은 바뀌지 않음”으로 분리 | 기기 설정이 바뀌지 않는다는 사실을 먼저 확인함 |
+| simulation prompt | 조건부 비교와 스위치 조작이 한 문단에 섞임 | 예측 → 한 조건 바꾸기 → 관찰 → 설명 → 비교 순서 | prediction 전 checkbox disabled, explanation 전 compare disabled |
+| impact labels | 사용 가능/판정 피드백/판정 근거가 추상적으로 나열됨 | 계속 할 수 있는 일/제한되는 일/왜 판단했을까요?/다른 방법 | 허용·제한·이유·대안을 각각 찾을 수 있음 |
+| rationale writing | 개인정보·저장·자동 채점 경계가 한 덩어리 | 개인정보 금지·저장 가능·자동 채점 안 함·문장 도움말 분리 | 이름/전화번호/주소를 쓰지 않고 이유 문장을 시작할 수 있음 |
+
+### Same-scenario learner panel evidence
+
+- 320×800 map: 키보드 Space로 prediction을 고른 뒤 `현재 위치 보기 조건 켜기`를 조작하고 관찰·설명·비교를 완료했습니다. reset 뒤 checkbox가 꺼지고 observation이 숨겨졌습니다.
+- 375×812 map: reduced-motion 상태에서 동일 loop와 reset/retry를 완료했습니다. `scrollWidth=360`, `clientWidth=360`, 44px 미만 control 0개, animation 0개였습니다.
+- 1280×900 map: baseline prediction과 changed observation을 읽은 뒤 explanation을 골라 비교를 완료했습니다.
+- 1280×900 voice: `오래 보관하는 조건 켜기`가 꺼진 상태로 시작하고 켠 뒤 긴 보관 observation을 표시했습니다. 실제 녹음·재생 버튼은 0개였습니다.
+- 모든 scoped MCP run에서 navigation 전에 request listener를 설치했고 external requests `[]`, console errors `[]`였습니다.
+- 새 Playwright spec은 `e2e/elementary-language-simulation.spec.ts`에 저장했습니다. CLI 실행은 브라우저 실행 파일 부재로 환경 차단되었고 설치하지 않았습니다.
+
+### Scoped disposition
+
+표현 원장 `EDU-LANG-001`~`EDU-LANG-006`과 시뮬레이션 원장의 두 objective는 모두 `confirmed`/`GREEN`입니다. 실제 아동·교사 관찰, VoiceOver/TalkBack, CI 브라우저 실행은 별도 후속 증거로 남겼으며 이번 실행에서 커밋·푸시·배포는 하지 않았습니다.

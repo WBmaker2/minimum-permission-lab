@@ -1,0 +1,85 @@
+.simulation-loop {
+  margin-block: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+}
+
+.simulation-loop h5 {
+  margin-block: 0 var(--space-3);
+  font-size: 1.1rem;
+}
+
+.simulation-loop__fieldset {
+  margin-block: var(--space-3);
+  padding: var(--space-3);
+}
+
+.simulation-loop__fieldset legend {
+  max-inline-size: 100%;
+  font-weight: 700;
+}
+
+.simulation-loop label {
+  min-block-size: var(--min-target-size);
+}
+
+.simulation-loop__manipulation {
+  margin-block: var(--space-3);
+  padding: var(--space-3);
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.simulation-loop__manipulation label {
+  font-weight: 700;
+}
+
+.simulation-loop__manipulation p {
+  margin-block: var(--space-2) 0;
+}
+
+.simulation-loop__observation {
+  margin-block: var(--space-3);
+  padding: var(--space-3);
+  border-inline-start: 0.35rem solid var(--color-success);
+  background: var(--color-surface-accent);
+  font-weight: 700;
+}
+
+.simulation-loop__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+.simulation-loop__boundary {
+  margin-block: var(--space-3) 0;
+}
+
+@media (max-width: 640px) {
+  .simulation-loop {
+    padding: var(--space-3);
+  }
+
+  .simulation-loop__actions {
+    flex-direction: column;
+  }
+
+  .simulation-loop__actions button {
+    inline-size: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .simulation-loop,
+  .simulation-loop *,
+  .simulation-loop *::before,
+  .simulation-loop *::after {
+    transition: none;
+    animation: none;
+  }
+}
