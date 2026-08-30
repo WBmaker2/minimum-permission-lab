@@ -11,12 +11,11 @@ interface AppHeaderProps {
 
 export default function AppHeader({ stage, completedCaseCount, totalCaseCount }: AppHeaderProps): ReactElement {
   return (
-    <header>
-      <h1>앱 권한 최소허용 연구소</h1>
-      <ProgressIndicator stage={stage} completedCaseCount={completedCaseCount} totalCaseCount={totalCaseCount} />
-      <p>
-        <span>가상 학습 모델</span>
-      </p>
+    <header className="app-header">
+      <div className="app-header__bar">
+        <h1>앱 권한 최소허용 연구소</h1>
+        <ProgressIndicator stage={stage} completedCaseCount={completedCaseCount} totalCaseCount={totalCaseCount} />
+      </div>
       <LearningModelNotice />
     </header>
   )

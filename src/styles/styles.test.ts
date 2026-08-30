@@ -18,7 +18,8 @@ describe('learning visual system styles', () => {
     expect(mainSource.indexOf("import './styles/tokens.css'")).toBeGreaterThan(-1)
     expect(mainSource.indexOf("import './styles/global.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/tokens.css'"))
     expect(mainSource.indexOf("import './styles/components.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/global.css'"))
-    expect(mainSource.indexOf("import './styles/print.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/components.css'"))
+    expect(mainSource.indexOf("import './styles/interactive.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/components.css'"))
+    expect(mainSource.indexOf("import './styles/print.css'")).toBeGreaterThan(mainSource.indexOf("import './styles/interactive.css'"))
   })
 
   it('defines light contrast, focus, spacing and minimum target tokens', () => {
@@ -89,13 +90,13 @@ describe('learning visual system styles', () => {
   })
 
   it('overrides the update history inline width while staying in normal flow', () => {
-    const css = readStyle('components.css')
+    const css = readStyle('interactive.css')
     expect(css).toMatch(/\.update-history-trigger-area\s*\{[^}]*width:\s*min\(calc\(100% - 2rem\),\s*var\(--content-width\)\)\s*!important/)
     expect(css).toMatch(/\.update-history-trigger-area\s*\{[^}]*position|\.update-history-trigger-area[^{]*\{[^}]*display:\s*flex/)
   })
 
   it('replaces pulse motion with a fixed visible reduced-motion treatment', () => {
-    const css = readStyle('components.css')
+    const css = readStyle('interactive.css')
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
     const reducedMotion = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'))
     expect(reducedMotion).toMatch(/animation\s*:\s*none/)
@@ -105,8 +106,25 @@ describe('learning visual system styles', () => {
     expect(reducedMotion).toMatch(/opacity\s*:\s*1/)
   })
 
-  it('keeps normal gi-pulse geometry fixed by animating the aura only', () => {
+  it('gives stage headings and requirement hints a stable visual anchor', () => {
+    const globalCss = readStyle('global.css')
     const css = readStyle('components.css')
+    expect(globalCss).toMatch(/h2\[data-stage-heading\]\s*\{[^}]*display:\s*inline-block/)
+    expect(css).toMatch(/\.action-requirement-hint\s*\{[^}]*border:/)
+    expect(css).toMatch(/\.action-requirement-hint\s*\{[^}]*padding:/)
+    expect(css).not.toContain('border-inline-start: 4px')
+  })
+
+  it('provides responsive button feedback without moving surrounding layout', () => {
+    const css = readStyle('components.css')
+    expect(css).toMatch(/button\s*\{[^}]*transition:/)
+    expect(css).toMatch(/button:active:not\(:disabled\)\s*\{[^}]*transform:/)
+    expect(css).toMatch(/\.secondary-action\s*\{[^}]*background:/)
+    expect(css).toMatch(/\.destructive-action\s*\{[^}]*background:/)
+  })
+
+  it('keeps normal gi-pulse geometry fixed by animating the aura only', () => {
+    const css = readStyle('interactive.css')
     const pulseKeyframes = css.match(/@keyframes gi-pulse\s*\{([\s\S]*?)\n\}\s*@keyframes gi-pulse-aura/)
     expect(pulseKeyframes?.[1]).toBeTruthy()
     expect(pulseKeyframes?.[1]).not.toMatch(/\btransform\s*:/)

@@ -14,11 +14,11 @@ const UpdateHistoryButton = forwardRef<HTMLButtonElement, UpdateHistoryButtonPro
         justifyContent: 'flex-end',
         width: '100%',
         boxSizing: 'border-box',
-        padding: '0.75rem 1rem',
         position: 'static',
+        padding: '0.75rem 1rem',
       }}
     >
-      <button ref={ref} className="update-history-trigger" style={{ maxWidth: '100%' }} type="button" onClick={onOpen}>
+      <button ref={ref} className="update-history-trigger" type="button" onClick={onOpen} style={{ maxWidth: '100%' }}>
         업데이트 내역
       </button>
     </div>
